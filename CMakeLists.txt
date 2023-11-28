@@ -20,6 +20,7 @@ include(external/cpm.cmake)
 # add libraries
 include(external/glfw.cmake)
 include(external/imgui.cmake)
+include(external/assimp.cmake)
 
 add_subdirectory(core)
 add_subdirectory(assignments/assignment7_lighting)

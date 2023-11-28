@@ -14,6 +14,7 @@
 #include <ew/transform.h>
 #include <ew/camera.h>
 #include <ew/cameraController.h>
+#include <assimp/Importer.hpp>
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 void resetCamera(ew::Camera& camera, ew::CameraController& cameraController);
@@ -61,6 +62,8 @@ int main() {
     ew::Shader shader("assets/defaultLit.vert", "assets/defaultLit.frag");
     unsigned int brickTexture = ew::loadTexture("assets/brick_color.jpg",GL_REPEAT,GL_LINEAR);
 
+    ew::Shader fireShader("assets/defaultLit.vert", "assets/fireShader.frag");
+
     //Create cube
     ew::Mesh cubeMesh(ew::createCube(1.0f));
     ew::Mesh planeMesh(ew::createPlane(5.0f, 5.0f, 10));
@@ -105,11 +108,15 @@ int main() {
         shader.setMat4("_Model", planeTransform.getModelMatrix());
         planeMesh.draw();
 
-        shader.setMat4("_Model", sphereTransform.getModelMatrix());
-        sphereMesh.draw();
-
         shader.setMat4("_Model", cylinderTransform.getModelMatrix());
         cylinderMesh.draw();
+
+        fireShader.use();
+        glBindTexture(GL_TEXTURE_2D, brickTexture);
+        fireShader.setInt("_Texture", 0);
+        fireShader.setMat4("_ViewProjection", camera.ProjectionMatrix() * camera.ViewMatrix());
+        fireShader.setMat4("_Model", sphereTransform.getModelMatrix());
+        sphereMesh.draw();
 
         //TODO: Render point lights
 
