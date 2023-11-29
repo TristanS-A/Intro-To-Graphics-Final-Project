@@ -112,16 +112,16 @@ int main() {
         shader.setMat4("_Model", planeTransform.getModelMatrix());
         planeMesh.draw();
 
-        shader.setMat4("_Model", cylinderTransform.getModelMatrix());
-        cylinderMesh.draw();
+        shader.setMat4("_Model", sphereTransform.getModelMatrix());
+        sphereMesh.draw();
 
         fireShader.use();
         fireShader.setFloat("_Time", glfwGetTime());
         glBindTexture(GL_TEXTURE_2D, brickTexture);
         fireShader.setInt("_Texture", 0);
         fireShader.setMat4("_ViewProjection", camera.ProjectionMatrix() * camera.ViewMatrix());
-        fireShader.setMat4("_Model", sphereTransform.getModelMatrix());
-        sphereMesh.draw();
+        fireShader.setMat4("_Model", cylinderTransform.getModelMatrix());
+        cylinderMesh.draw();
 
         //TODO: Render point lights
 
