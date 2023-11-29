@@ -81,6 +81,10 @@ int main() {
 
     resetCamera(camera,cameraController);
 
+    //Sets blending
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
 
@@ -112,6 +116,7 @@ int main() {
         cylinderMesh.draw();
 
         fireShader.use();
+        fireShader.setFloat("_Time", glfwGetTime());
         glBindTexture(GL_TEXTURE_2D, brickTexture);
         fireShader.setInt("_Texture", 0);
         fireShader.setMat4("_ViewProjection", camera.ProjectionMatrix() * camera.ViewMatrix());
