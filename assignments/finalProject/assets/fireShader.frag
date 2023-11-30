@@ -65,7 +65,7 @@ float fbm ( in vec2 p ) {
     f += 0.0625*noise(p);
     p = m*p;
     f = 0.5 + 0.5 * f;
-    
+
     return f;
 }
 

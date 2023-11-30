@@ -14,6 +14,7 @@ uniform vec3 _NWorldVec;
 uniform mat4 _ViewProjection;
 uniform float _Time;
 
+/*
 //Makes pseudo random numbers between 0.0 and 1.0 based on input
 float rand(vec2 cord){
     const float a = 17;
@@ -25,6 +26,52 @@ float rand(vec2 cord){
     //Fract is the most important part of random function (Makees next value more unpredictable)
     return fract(sin(dot(cord.xy, vec2(a, b))) * c);
 }
+
+//Modified rand function to return two pseudo random values from -1.0 to 1.0 based on input
+vec3 hash( vec3 p ) {
+    p = vec3( dot(p,vec3(127.1,311.7, 213.4))),
+    dot(p,vec3(269.5,183.3, 567.9));
+
+    return -1.0 + 2.0*fract(sin(p) * 43758.5453123);
+}
+
+//Makes simplex noise
+float noise( in vec3 p ) {
+    const float K1 = 0.366025404; // (sqrt(3)-1)/2;
+    const float K2 = 0.211324865; // (3-sqrt(3))/6;
+
+    vec3 i = floor( p + (p.x+p.y+p.z) * K1 );
+
+    vec3 a = p - i + (i.x+i.y+i.z) * K2;
+    vec3 o = step(a.zyx,a.xyz);
+    vec3 b = a - o + K2;
+    vec3 c = a - 1.0 + 2.0*K2;
+
+    vec3 h = max( 0.5-vec3(dot(a,a), dot(b,b), dot(c,c) ), 0.0 );
+
+    vec3 n = h*h*h*h*vec3( dot(a,hash(i+0.0)), dot(b,hash(i+o)), dot(c,hash(i+1.0)));
+
+    return dot( n, vec3(70.0) );
+}
+
+//Turns noise into fractal noise (Making it less blurry and mroe defined)
+float fbm ( in vec3 p ) {
+    float f = 0.0;
+
+    //Matrix to scale up by two and rotate clockwise ~36.8 degrees
+    mat3 m = mat3( 1.6,  1.2, 0.0, -1.2,  1.6 , 0.0, 0.0, 0.0, 1.0);
+
+    f = 0.5000*noise(p);
+    p = m*p;
+    f += 0.2500*noise(p);
+    p = m*p;
+    f += 0.1250*noise(p);
+    p = m*p;
+    f += 0.0625*noise(p);
+    p = m*p;
+    f = 0.5 + 0.5 * f;
+    return f;
+}*/
 
 //Modified rand function to return two pseudo random values from -1.0 to 1.0 based on input
 vec2 hash( vec2 p ) {
@@ -69,35 +116,24 @@ float fbm ( in vec2 p ) {
     f += 0.0625*noise(p);
     p = m*p;
     f = 0.5 + 0.5 * f;
+
     return f;
-}
-
-vec3 bumpMap(vec2 uv) {
-    //Scales normal cords to each pixel on x and y axis
-    vec2 s = 1.0 / vec2(500,500);
-
-    float p =  fbm(uv);
-    float h1 = fbm(uv + s * vec2(1.0, 0));
-    float v1 = fbm(uv + s * vec2(0, 1.0));
-
-    //Makes normal vector by finding the difference between x and y and multiplies magnitude of vector
-    vec2 xy = (p - vec2(h1, v1)) * 100;
-
-    //0.5 is added as a median to keep the value from going positive or negative
-    return vec3(xy + 0.5, 1.0);
 }
 
 void main(){
     vs_out.UV = vUV;
 
     //This was an attempt to animate vPos to a bumpMap but it would mess up the seems of the model and also it looked a bit wierd sometimes
-    /*
-    vec3 normal = bumpMap(vec2(vUV.x * 1.0, vUV.y * 0.5 - _Time) * 2.0);
-    vec2 displacement = clamp((normal.xy - .5) * 0.5, -1., 1.);
-    vec3 newPos = vPos + normalize(vNormal) * displacement.x * 0.2;
-    */
 
-    vs_out.WorldPos = vec3(_Model * vec4(vPos,1.0));
+    //vec3 normal = bumpMap(vec3(vNormal.x * 1.0, vNormal.y * 0.5 - _Time, vNormal.z) * 2.0);
+    //vec3 displacement = clamp((normal.xyz - 0.5) * 0.5, -1., 1.);
+
+    //float height = 0.5 + 0.5 * pow(noise(0.2 * vec2(vNormal.x * vNormal.z, vNormal.y * vNormal.z - _Time)), 1.0);
+    float height = pow(fbm(0.2 * vec2(vNormal.x * vNormal.z, vNormal.y * vNormal.z - _Time)), 1.0);
+    vec3 newPos = vPos + normalize(vNormal) * (height * 0.5);
+
+
+    vs_out.WorldPos = vec3(_Model * vec4(newPos,1.0));
     vs_out.WorldNormals = transpose(inverse(mat3(_Model))) * vNormal;
-    gl_Position = _ViewProjection * _Model * vec4(vPos,1.0);
+    gl_Position = _ViewProjection * _Model * vec4(newPos,1.0);
 }
