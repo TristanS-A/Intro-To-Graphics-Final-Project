@@ -62,7 +62,7 @@ int main() {
     ew::Shader shader("assets/defaultLit.vert", "assets/defaultLit.frag");
     unsigned int brickTexture = ew::loadTexture("assets/brick_color.jpg",GL_REPEAT,GL_LINEAR);
 
-    ew::Shader fireShader("assets/defaultLit.vert", "assets/fireShader.frag");
+    ew::Shader fireShader("assets/fireShader.vert", "assets/fireShader.frag");
 
     //Create cube
     ew::Mesh cubeMesh(ew::createCube(1.0f));
@@ -121,7 +121,7 @@ int main() {
         fireShader.setInt("_Texture", 0);
         fireShader.setMat4("_ViewProjection", camera.ProjectionMatrix() * camera.ViewMatrix());
         fireShader.setMat4("_Model", cylinderTransform.getModelMatrix());
-        cylinderMesh.draw();
+        sphereMesh.draw();
 
         //TODO: Render point lights
 

@@ -1,13 +1,17 @@
 #version 450
-out vec4 FragColor;
+layout(location = 0) in vec3 vPos;
+layout(location = 1) in vec3 vNormal;
+layout(location = 2) in vec2 vUV;
 
-in Surface{
-	vec2 UV;
-	vec3 WorldPos;
-	vec3 WorldNormals;
-}fs_in;
+out Surface{
+    vec2 UV;
+    vec3 WorldPos;
+    vec3 WorldNormals;
+}vs_out;
 
-uniform sampler2D _Texture;
+uniform mat4 _Model;
+uniform vec3 _NWorldVec;
+uniform mat4 _ViewProjection;
 uniform float _Time;
 
 //Makes pseudo random numbers between 0.0 and 1.0 based on input
@@ -24,10 +28,10 @@ float rand(vec2 cord){
 
 //Modified rand function to return two pseudo random values from -1.0 to 1.0 based on input
 vec2 hash( vec2 p ) {
-	p = vec2( dot(p,vec2(127.1,311.7)),
-			  dot(p,vec2(269.5,183.3)) );
+    p = vec2( dot(p,vec2(127.1,311.7)),
+    dot(p,vec2(269.5,183.3)) );
 
-	return -1.0 + 2.0*fract(sin(p) * 43758.5453123);
+    return -1.0 + 2.0*fract(sin(p) * 43758.5453123);
 }
 
 //Makes simplex noise
@@ -35,16 +39,16 @@ float noise( in vec2 p ) {
     const float K1 = 0.366025404; // (sqrt(3)-1)/2;
     const float K2 = 0.211324865; // (3-sqrt(3))/6;
 
-	vec2 i = floor( p + (p.x+p.y) * K1 );
+    vec2 i = floor( p + (p.x+p.y) * K1 );
 
     vec2 a = p - i + (i.x+i.y) * K2;
     vec2 o = step(a.yx,a.xy);
     vec2 b = a - o + K2;
-	vec2 c = a - 1.0 + 2.0*K2;
+    vec2 c = a - 1.0 + 2.0*K2;
 
     vec3 h = max( 0.5-vec3(dot(a,a), dot(b,b), dot(c,c) ), 0.0 );
 
-	vec3 n = h*h*h*h*vec3( dot(a,hash(i+0.0)), dot(b,hash(i+o)), dot(c,hash(i+1.0)));
+    vec3 n = h*h*h*h*vec3( dot(a,hash(i+0.0)), dot(b,hash(i+o)), dot(c,hash(i+1.0)));
 
     return dot( n, vec3(70.0) );
 }
@@ -84,39 +88,16 @@ vec3 bumpMap(vec2 uv) {
 }
 
 void main(){
+    vs_out.UV = vUV;
 
-    //Makes normals using a bump map with nosie cords and makes distortion taller with multiplying UV.y by 0.5 and
-    //also moves distortion with time on y axis
-    vec3 normal = bumpMap(vec2(fs_in.UV.x * 1.0, fs_in.UV.y * 0.5 - _Time) * 2);
+    //This was an attempt to animate vPos to a bumpMap but it would mess up the seems of the model and also it looked a bit wierd sometimes
+    /*
+    vec3 normal = bumpMap(vec2(vUV.x * 1.0, vUV.y * 0.5 - _Time) * 2.0);
+    vec2 displacement = clamp((normal.xy - .5) * 0.5, -1., 1.);
+    vec3 newPos = vPos + normalize(vNormal) * displacement.x * 0.2;
+    */
 
-    //Calculates displacement from normals
-    vec2 displacement = clamp((normal.xy - .5) * 0.1, -1., 1.);
-
-    //makes new UV from displacement
-    vec2 newUV = fs_in.UV + displacement;
-
-    //Streches out UV.y to make fire taller and moves it with time on the y axis
-    vec2 uvT = vec2(newUV.x * 1.0, newUV.y * 0.5 - _Time);
-
-    //Makes noise with altered noise cords (which is UV)
-    float n = pow(fbm(8.0 * uvT), 1.0);
-
-    //Makes gradiant for the fire to fall off
-    float gradiant = pow(1.0 - newUV.y, 2.0) * 5.0;
-
-    //Applies gradient to noise
-    float newNoise = n * gradiant;
-
-    //Gives color to the noise to look like fire
-    vec3 color = newNoise * vec3(2.0 * n, 2.0 * n * n, n * n * n);
-
-    //Makes the fire fade out more (To stop the black outline from the dark/low colors)
-    float fadeOutAddition = 0.2f;
-
-    //Changes opacity so that the black areas dissapear
-    float opacity = clamp(newNoise - fadeOutAddition, 0, 1);
-
-    //Sets frag color to noise color and opacity
-    //FragColor = vec4(vec3(newNoise), 1.0);
-    FragColor = vec4(color, opacity);
+    vs_out.WorldPos = vec3(_Model * vec4(vPos,1.0));
+    vs_out.WorldNormals = transpose(inverse(mat3(_Model))) * vNormal;
+    gl_Position = _ViewProjection * _Model * vec4(vPos,1.0);
 }
