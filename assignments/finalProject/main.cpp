@@ -78,6 +78,7 @@ int main() {
     planeTransform.position = ew::Vec3(0, -1.0, 0);
     sphereTransform.position = ew::Vec3(-1.5f, 0.0f, 0.0f);
     cylinderTransform.position = ew::Vec3(1.5f, 0.0f, 0.0f);
+    //cylinderTransform.scale = ew::Vec3(0.1f, 0.1f, 1.0f);
 
     resetCamera(camera,cameraController);
 

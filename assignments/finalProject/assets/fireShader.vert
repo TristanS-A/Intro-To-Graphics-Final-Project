@@ -129,20 +129,21 @@ void main(){
     //vec3 displacement = clamp((normal.xyz - 0.5) * 0.5, -1., 1.);
 
     //Scales how much noise (black and white "spots") is in the noise
-    float noiseFrequency = 1.0;
+    float noiseFrequency = 2.0;
 
     //Uses noise as a height map using normals so that seems (with the same normals) don't seperate and animates with time
-    float height = 0.5 + 0.5 * pow(noise(noiseFrequency * vec2(vNormal.x * vNormal.z, vNormal.y * vNormal.z - _Time)), 1.0);
+    //float height = 0.5 + 0.5 * pow(noise(noiseFrequency * vec2(vNormal.x * vNormal.z, vNormal.y * vNormal.z - _Time)), 1.0);
+    float height = 0.5 + 0.5 * pow(noise(noiseFrequency * vec2(vPos.x * vPos.z, vPos.y * vPos.z - _Time)), 1.0);
     //float height = pow(fbm(0.2 * vec2(vNormal.x * vNormal.z, vNormal.y * vNormal.z - _Time)), 1.0);
 
     //Scales the overall size of the mesh for each vertex
-    float overallScale = 0.5f;
+    //float overallScale = 0.5f;
 
     //Scales distortion power
     float distortionPower = 0.6;
 
     //Adds distortion to vertex in the direction of the normals
-    vec3 newPos = (vPos + normalize(vNormal) * (height * distortionPower)) * overallScale;
+    vec3 newPos = (vPos + normalize(vNormal) * (height * distortionPower));
 
     vs_out.WorldPos = vec3(_Model * vec4(newPos,1.0));
     vs_out.WorldNormals = transpose(inverse(mat3(_Model))) * vNormal;
