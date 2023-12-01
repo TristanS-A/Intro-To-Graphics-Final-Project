@@ -20,4 +20,8 @@ namespace tsa {
     ew::MeshData createCone(float height, float radius, int numSegments);
 
     ew::MeshData createSpring(float height, int numCoils, float outerRadius, float innerRadius, int stackSubDiv, int sliceSubDiv);
+
+    ew::MeshData createDomeBot(float height, float radius, int numSegments);
+
+    ew::MeshData createDomeTop(float radius, int numSegments);
 }

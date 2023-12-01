@@ -412,4 +412,89 @@ namespace tsa{
 
         return newMesh;
     }
+    ew::MeshData createDomeBot(float height, float radius, int numSegments) {
+        ew::MeshData newMesh;
+
+        float topHeight = height / 2;
+        float bottomHeight = -topHeight;
+
+        ew::Vertex topCenter = { ew::Vec3(0, topHeight, 0), ew::Vec3(0, 1, 0), ew::Vec2(0.5, 0.5) };
+
+        newMesh.vertices.push_back(topCenter);
+
+        makeRingWithInputNormals(newMesh, ew::Vec3(0, 1, 0), topHeight, radius, numSegments);
+
+        makeRingWithSideNormals(newMesh, topHeight, radius, numSegments, 1);
+
+        makeRingWithSideNormals(newMesh, bottomHeight, radius, numSegments, 0);
+
+        makeRingWithInputNormals(newMesh, ew::Vec3(0, -1, 0), bottomHeight, radius, numSegments);
+
+        ew::Vertex bottomCenter = { ew::Vec3(0, bottomHeight, 0), ew::Vec3(0, -1, 0), ew::Vec2(0.5, 0.5) };
+        newMesh.vertices.push_back(bottomCenter);
+
+        int start = 1;
+        int sideStart = 1 + numSegments;
+        int columns = numSegments + 1;
+        for (int i = 0; i < columns; i++) {
+            start = sideStart + i;
+            newMesh.indices.push_back(start);
+            newMesh.indices.push_back(start + 1);
+            newMesh.indices.push_back(start + columns);
+            newMesh.indices.push_back(start + columns);
+            newMesh.indices.push_back(start + 1);
+            newMesh.indices.push_back(start + columns + 1);
+        }
+
+        start = numSegments * 3 + 4;
+        int center = numSegments * 4 + 5;
+        for (int i = 0; i <= numSegments; i++) {
+            newMesh.indices.push_back(start + i + 1);
+            newMesh.indices.push_back(center);
+            newMesh.indices.push_back(start + i);
+        }
+
+        return newMesh;
+    }
+    ew::MeshData createDomeTop(float radius, int numSegments) {
+        ew::MeshData newMesh;
+
+        float thetaStep = 2 * ew::PI / numSegments;
+        float phiStep = ew::PI / numSegments;
+
+        for (int row = 0; row <= numSegments; row++) {
+            float phi = row * phiStep;
+            for (int col = 0; col <= numSegments; col++) {
+                float theta = col * thetaStep;
+                ew::Vertex currVertex;
+                currVertex.pos = ew::Vec3(radius * cos(theta) * sin(phi), radius * cos(phi), radius * sin(theta) * sin(phi));
+                currVertex.uv = ew::Vec2((float)col / numSegments, abs((float)row / numSegments - 1));
+                currVertex.normal = ew::Normalize(ew::Vec3(currVertex.pos));
+                newMesh.vertices.push_back(currVertex);
+            }
+        }
+
+        int poleStart = 0;
+        int ringStart = numSegments + 1;
+        for (int i = 0; i < numSegments; i++) {
+            newMesh.indices.push_back(ringStart + i);
+            newMesh.indices.push_back(poleStart + i);
+            newMesh.indices.push_back(ringStart + i + 1);
+        }
+
+        float columns = numSegments + 1;
+        for (int row = 1; row < numSegments / 2; row++) {
+            for (int col = 0; col < numSegments; col++) {
+                float start = row * columns + col;
+                newMesh.indices.push_back(start);
+                newMesh.indices.push_back(start + 1);
+                newMesh.indices.push_back(start + columns);
+                newMesh.indices.push_back(start + columns);
+                newMesh.indices.push_back(start + 1);
+                newMesh.indices.push_back(start + columns + 1);
+            }
+        }
+
+        return newMesh;
+    }
 }
