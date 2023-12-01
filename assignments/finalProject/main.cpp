@@ -74,11 +74,11 @@ int main() {
     ew::Transform cubeTransform;
     ew::Transform planeTransform;
     ew::Transform sphereTransform;
-    ew::Transform cylinderTransform;
+    ew::Transform fireTransform;
     planeTransform.position = ew::Vec3(0, -1.0, 0);
     sphereTransform.position = ew::Vec3(-1.5f, 0.0f, 0.0f);
-    cylinderTransform.position = ew::Vec3(1.5f, 0.0f, 0.0f);
-    //cylinderTransform.scale = ew::Vec3(0.1f, 0.1f, 1.0f);
+    fireTransform.position = ew::Vec3(1.5f, 0.0f, 0.0f);
+    //fireTransform.scale = ew::Vec3(0.1f, 0.1f, 1.0f);
 
     resetCamera(camera,cameraController);
 
@@ -121,7 +121,7 @@ int main() {
         glBindTexture(GL_TEXTURE_2D, brickTexture);
         fireShader.setInt("_Texture", 0);
         fireShader.setMat4("_ViewProjection", camera.ProjectionMatrix() * camera.ViewMatrix());
-        fireShader.setMat4("_Model", cylinderTransform.getModelMatrix());
+        fireShader.setMat4("_Model", fireTransform.getModelMatrix());
         sphereMesh.draw();
 
         //TODO: Render point lights
@@ -151,6 +151,8 @@ int main() {
                     resetCamera(camera, cameraController);
                 }
             }
+
+            ImGui::DragFloat3("Fire Scale", &fireTransform.scale.x, 0.1);
 
             ImGui::ColorEdit3("BG color", &bgColor.x);
             ImGui::End();
