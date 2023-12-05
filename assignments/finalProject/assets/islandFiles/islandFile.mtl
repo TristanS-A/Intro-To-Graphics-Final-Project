@@ -1,0 +1,32 @@
+# Blender 4.0.1 MTL File: 'None'
+# www.blender.org
+
+newmtl 03_-_Default.001
+Ns 20.000006
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd ../../../../../assets/islandFiles/Leaf.jpg
+
+newmtl 07_-_Default.001
+Ns 20.000006
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd ../../../../../assets/islandFiles/Tree.jpg
+
+newmtl 08_-_Default.001
+Ns 20.000006
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd ../../../../../assets/islandFiles/Sand.jpg

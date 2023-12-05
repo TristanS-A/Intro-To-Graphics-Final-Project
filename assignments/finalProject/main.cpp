@@ -15,6 +15,8 @@
 #include <ew/camera.h>
 #include <ew/cameraController.h>
 #include <assimp/Importer.hpp>
+#include <tsa/assimpModel.h>
+#include <iostream>
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 void resetCamera(ew::Camera& camera, ew::CameraController& cameraController);
@@ -86,6 +88,9 @@ int main() {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+    //Load model file
+    tsa::AssimpModel model("assets/islandFiles/islandFile.obj");
+
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
 
@@ -123,6 +128,7 @@ int main() {
         fireShader.setMat4("_ViewProjection", camera.ProjectionMatrix() * camera.ViewMatrix());
         fireShader.setMat4("_Model", fireTransform.getModelMatrix());
         sphereMesh.draw();
+        model.Draw(shader);
 
         //TODO: Render point lights
 
