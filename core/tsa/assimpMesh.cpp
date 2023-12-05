@@ -9,7 +9,7 @@ tsa::AssimpMesh::AssimpMesh(std::vector<Vertex> vertices, std::vector<unsigned i
 	setupAssimpMesh();
 }
 
-void tsa::AssimpMesh::AsimpDraw(ew::Shader& shader)
+void tsa::AssimpMesh::AssimpDraw(ew::Shader& shader)
 {
     unsigned int diffuseNr = 1;
     unsigned int specularNr = 1;

@@ -19,6 +19,7 @@ namespace tsa
 	{
 		unsigned int id;
 		std::string type;
+		std::string path;
 	};
 
 	class AssimpMesh
@@ -29,7 +30,7 @@ namespace tsa
 		std::vector<Texture> textures;
 
 		AssimpMesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures);
-		void AsimpDraw(ew::Shader& shader);
+		void AssimpDraw(ew::Shader& shader);
 	private:
 		unsigned int VAO, VBO, EBO;
 
