@@ -77,10 +77,11 @@ int main() {
     ew::Transform planeTransform;
     ew::Transform sphereTransform;
     ew::Transform fireTransform;
+    ew::Transform islandTransform;
     planeTransform.position = ew::Vec3(0, -1.0, 0);
     sphereTransform.position = ew::Vec3(-1.5f, 0.0f, 0.0f);
     fireTransform.position = ew::Vec3(1.5f, 0.0f, 0.0f);
-    //fireTransform.scale = ew::Vec3(0.1f, 0.1f, 1.0f);
+    islandTransform.position = ew::Vec3(0, 0, 0);
 
     resetCamera(camera,cameraController);
 
@@ -89,6 +90,7 @@ int main() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     //Load model file
+    //tsa::AssimpModel model("assets/islandFiles/islandFile.obj");
     tsa::AssimpModel model("assets/islandFiles/islandFile.obj");
 
     while (!glfwWindowShouldClose(window)) {
@@ -108,7 +110,7 @@ int main() {
 
         shader.use();
         glBindTexture(GL_TEXTURE_2D, brickTexture);
-        shader.setInt("_Texture", 0);
+        shader.setInt("_Text_texture_diffuse", 0);
         shader.setMat4("_ViewProjection", camera.ProjectionMatrix() * camera.ViewMatrix());
 
         //Draw shapes
@@ -121,14 +123,18 @@ int main() {
         shader.setMat4("_Model", sphereTransform.getModelMatrix());
         sphereMesh.draw();
 
+        shader.setMat4("_Model", islandTransform.getModelMatrix());
+        model.Draw(shader);
+
+        //Fire must be last because opacity and blending messes up if something is drawn after
         fireShader.use();
         fireShader.setFloat("_Time", glfwGetTime());
         glBindTexture(GL_TEXTURE_2D, brickTexture);
-        fireShader.setInt("_Texture", 0);
+        fireShader.setInt("_Text_texture_diffuse", 0);
         fireShader.setMat4("_ViewProjection", camera.ProjectionMatrix() * camera.ViewMatrix());
         fireShader.setMat4("_Model", fireTransform.getModelMatrix());
+
         sphereMesh.draw();
-        model.Draw(shader);
 
         //TODO: Render point lights
 
@@ -159,6 +165,8 @@ int main() {
             }
 
             ImGui::DragFloat3("Fire Scale", &fireTransform.scale.x, 0.1);
+            ImGui::DragFloat3("Island Scale", &islandTransform.scale.x, 0.1);
+            ImGui::DragFloat3("Island Position", &islandTransform.position.x, 0.1);
 
             ImGui::ColorEdit3("BG color", &bgColor.x);
             ImGui::End();

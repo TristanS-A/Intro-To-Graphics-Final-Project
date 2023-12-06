@@ -1,10 +1,11 @@
 #include "assimpModel.h"
+#include "texture.h"
 
 void tsa::AssimpModel::Draw(ew::Shader& shader)
 {
 	for (auto i = 0; i < meshes.size(); i++)
 	{
-		meshes[i].AssimpDraw(shader);
+        meshes[i].AssimpDraw(shader);
 	}
 }
 
@@ -50,6 +51,7 @@ tsa::AssimpMesh tsa::AssimpModel::processMesh(aiMesh* mesh, const aiScene* scene
 		vector.x = mesh->mVertices[i].x;
 		vector.y = mesh->mVertices[i].y;
 		vector.z = mesh->mVertices[i].z;
+        vertex.Position = vector;
 		if (mesh->mTextureCoords[0])
 		{
 			ew::Vec2 texVec;
@@ -105,7 +107,7 @@ std::vector<tsa::Texture> tsa::AssimpModel::loadMaterialTextures(aiMaterial* mat
 		}
 		if(!skip)
 		{
-			Texture texture;
+            Texture texture;
 			texture.id = TextureFromFile(str.C_Str(), this->directory);
 			texture.type = typeName;
 			texture.path = str.C_Str();
@@ -119,6 +121,8 @@ std::vector<tsa::Texture> tsa::AssimpModel::loadMaterialTextures(aiMaterial* mat
 
 unsigned int tsa::AssimpModel::TextureFromFile(const char* path, const std::string& directory, bool gama)
 {
+    stbi_set_flip_vertically_on_load(true);
+
 	std::string fileName = std::string(path);
 	fileName = directory + "/" + fileName;
 
@@ -127,24 +131,36 @@ unsigned int tsa::AssimpModel::TextureFromFile(const char* path, const std::stri
 
 	int width, height, nrComponents;
 	unsigned char* data = stbi_load(fileName.c_str(), &width, &height, &nrComponents, 0);
-	
+
 	if (data)
 	{
-		GLenum format;
-		if (nrComponents == 1)
-			format = GL_RED;
-		else if (nrComponents == 3)
-			format = GL_RGB;
-		else if (nrComponents == 4)
-			format = GL_RGBA;
+        GLenum fileFormat;
+        switch (nrComponents) {
+            case 1:
+                fileFormat = GL_RED;
+                break;
+            case 2:
+                fileFormat = GL_RG;
+                break;
+            case 3:
+                fileFormat = GL_RGB;
+                break;
+            case 4:
+                fileFormat = GL_RGBA;
+                break;
+            default:
+                fileFormat = GL_RED;
+                break;
+        }
 
 		glBindTexture(GL_TEXTURE_2D, textureID);
-		glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+        //std::cout << "debug2 " << fileName << ". Data:  " << data << "\n";
+		glTexImage2D(GL_TEXTURE_2D, 0, fileFormat, width, height, 0, fileFormat, GL_UNSIGNED_BYTE, data);
 		glGenerateMipmap(GL_TEXTURE_2D);
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 		stbi_image_free(data);
@@ -154,7 +170,5 @@ unsigned int tsa::AssimpModel::TextureFromFile(const char* path, const std::stri
 		std::cout << "Texture failed to load at path: " << path << std::endl;
 		stbi_image_free(data);
 	}
-
-	return textureID;
-
+    return textureID;
 }

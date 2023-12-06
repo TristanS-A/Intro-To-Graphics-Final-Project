@@ -7,8 +7,8 @@ in Surface{
 	vec3 WorldNormals;
 }fs_in;
 
-uniform sampler2D _Texture;
+uniform sampler2D _Text_texture_diffuse;
 
 void main(){
-    FragColor = texture(_Texture,fs_in.UV);
+    FragColor = texture(_Text_texture_diffuse,fs_in.UV);
 }

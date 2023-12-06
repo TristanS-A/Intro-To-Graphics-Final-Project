@@ -9,7 +9,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 1
-map_Kd ../../../../../assets/islandFiles/Leaf.jpg
+map_Kd Leaf.png
 
 newmtl 07_-_Default.001
 Ns 20.000006
@@ -19,7 +19,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 1
-map_Kd ../../../../../assets/islandFiles/Tree.jpg
+map_Kd Tree.jpg
 
 newmtl 08_-_Default.001
 Ns 20.000006
@@ -29,4 +29,4 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 1
-map_Kd ../../../../../assets/islandFiles/Sand.jpg
+map_Kd Sand.jpg

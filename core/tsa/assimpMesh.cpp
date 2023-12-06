@@ -1,4 +1,6 @@
 #include "assimpMesh.h"
+#include <iostream>
+#include "string"
 
 tsa::AssimpMesh::AssimpMesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures)
 {
@@ -24,7 +26,7 @@ void tsa::AssimpMesh::AssimpDraw(ew::Shader& shader)
         else if (name == "texture_specular")
             number = std::to_string(specularNr++);
 
-        shader.setInt(("material." + name + number).c_str(), i);
+        shader.setInt("_Text_texture_diffuse", i);
         glBindTexture(GL_TEXTURE_2D, textures[i].id);
     }
     glActiveTexture(GL_TEXTURE0);
