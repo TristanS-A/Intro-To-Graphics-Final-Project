@@ -52,6 +52,13 @@ tsa::AssimpMesh tsa::AssimpModel::processMesh(aiMesh* mesh, const aiScene* scene
 		vector.y = mesh->mVertices[i].y;
 		vector.z = mesh->mVertices[i].z;
         vertex.Position = vector;
+
+        ew::Vec3 vector2;
+        vector2.x = mesh->mNormals[i].x;
+        vector2.y = mesh->mNormals[i].y;
+        vector2.z = mesh->mNormals[i].z;
+        vertex.Normal = vector2;
+
 		if (mesh->mTextureCoords[0])
 		{
 			ew::Vec2 texVec;
