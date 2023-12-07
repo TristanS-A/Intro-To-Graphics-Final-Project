@@ -128,7 +128,7 @@ std::vector<tsa::Texture> tsa::AssimpModel::loadMaterialTextures(aiMaterial* mat
 
 unsigned int tsa::AssimpModel::TextureFromFile(const char* path, const std::string& directory, bool gama)
 {
-    stbi_set_flip_vertically_on_load(true);
+    //stbi_set_flip_vertically_on_load(true);
 
 	std::string fileName = std::string(path);
 	fileName = directory + "/" + fileName;

@@ -91,7 +91,7 @@ int main() {
 
     //Load model file
     //tsa::AssimpModel model("assets/islandFiles/islandFile.obj");
-    tsa::AssimpModel model("assets/islandFiles/islandFile.obj");
+    tsa::AssimpModel model("assets/test/realIsland.obj");
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
