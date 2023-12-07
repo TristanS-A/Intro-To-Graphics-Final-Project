@@ -125,6 +125,9 @@ int main() {
 
         shader.setMat4("_Model", islandTransform.getModelMatrix());
         model.Draw(shader);
+        glCullFace(GL_FRONT);
+        model.Draw(shader);
+        glCullFace(GL_BACK);
 
         //Fire must be last because opacity and blending messes up if something is drawn after
         fireShader.use();
