@@ -81,7 +81,7 @@ int main() {
     planeTransform.position = ew::Vec3(0, -1.0, 0);
     sphereTransform.position = ew::Vec3(-1.5f, 0.0f, 0.0f);
     fireTransform.position = ew::Vec3(1.5f, 0.0f, 0.0f);
-    islandTransform.position = ew::Vec3(0, 0, 0);
+    islandTransform.position = ew::Vec3(44, -10, 4);
 
     resetCamera(camera,cameraController);
 
@@ -90,8 +90,8 @@ int main() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     //Load model file
-    //tsa::AssimpModel model("assets/islandFiles/islandFile.obj");
-    tsa::AssimpModel model("assets/test/realIsland.obj");
+    //tsa::AssimpModel model("assets/models/testIsland.obj");
+    tsa::AssimpModel model("assets/models/zeldaIsland/zeldaIsland.obj");
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
