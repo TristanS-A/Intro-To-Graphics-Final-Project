@@ -17,6 +17,7 @@
 #include <assimp/Importer.hpp>
 #include <tsa/assimpModel.h>
 #include <iostream>
+#include "tsa/waterBufferStuff.h"
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 void resetCamera(ew::Camera& camera, ew::CameraController& cameraController);
@@ -68,20 +69,24 @@ int main() {
 
     //Create cube
     ew::Mesh cubeMesh(ew::createCube(1.0f));
-    ew::Mesh planeMesh(ew::createPlane(5.0f, 5.0f, 10));
+    ew::Mesh waterMesh(ew::createPlane(5.0f, 5.0f, 10));
     ew::Mesh sphereMesh(ew::createSphere(0.5f, 64));
     ew::Mesh cylinderMesh(ew::createCylinder(0.5f, 1.0f, 32));
+    ew::Mesh testMesh(ew::createPlane(1.0, 1.0, 10));
 
     //Initialize transforms
     ew::Transform cubeTransform;
-    ew::Transform planeTransform;
+    ew::Transform waterTransform;
     ew::Transform sphereTransform;
     ew::Transform fireTransform;
     ew::Transform islandTransform;
-    planeTransform.position = ew::Vec3(0, -1.0, 0);
+    ew::Transform testTransform;
+    waterTransform.position = ew::Vec3(0, -1.0, 0);
     sphereTransform.position = ew::Vec3(-1.5f, 0.0f, 0.0f);
     fireTransform.position = ew::Vec3(1.5f, 0.0f, 0.0f);
     islandTransform.position = ew::Vec3(44, -10, 4);
+    testTransform.rotation = ew::Vec3(90, 0, 0);
+    testTransform.position = ew::Vec3(0, 0, 0);
 
     resetCamera(camera,cameraController);
 
@@ -93,6 +98,9 @@ int main() {
     //tsa::AssimpModel model("assets/models/testIsland.obj");
     tsa::AssimpModel model("assets/models/zeldaIsland/zeldaIsland.obj");
 
+    //Create water buffers
+    tsa::WaterBuffers waterBuffers;
+
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
 
@@ -103,6 +111,8 @@ int main() {
         //Update camera
         camera.aspectRatio = (float)SCREEN_WIDTH / SCREEN_HEIGHT;
         cameraController.Move(window, &camera, deltaTime);
+
+        waterBuffers.bindReflectionFrameBuffer();
 
         //RENDER
         glClearColor(bgColor.x, bgColor.y,bgColor.z,1.0f);
@@ -116,9 +126,6 @@ int main() {
         //Draw shapes
         shader.setMat4("_Model", cubeTransform.getModelMatrix());
         cubeMesh.draw();
-
-        shader.setMat4("_Model", planeTransform.getModelMatrix());
-        planeMesh.draw();
 
         shader.setMat4("_Model", sphereTransform.getModelMatrix());
         sphereMesh.draw();
@@ -138,6 +145,21 @@ int main() {
         fireShader.setMat4("_Model", fireTransform.getModelMatrix());
 
         sphereMesh.draw();
+
+        shader.use();
+        shader.setMat4("_Model", waterTransform.getModelMatrix());
+        waterMesh.draw();
+
+        waterBuffers.unbindCurrFrameBuffers();
+
+        glClearColor(bgColor.x, bgColor.y,bgColor.z,1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        shader.setMat4("_ViewProjection", ew::Mat4{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1});
+        glBindTexture(GL_TEXTURE_2D, waterBuffers.getReflectionText());
+        shader.setInt("_Text_texture_diffuse", 0);
+        shader.setMat4("_Model", testTransform.getModelMatrix());
+        testMesh.draw();
 
         //TODO: Render point lights
 
@@ -180,7 +202,12 @@ int main() {
 
         glfwSwapBuffers(window);
     }
+    waterBuffers.cleanUpTime();
     printf("Shutting down...");
+}
+
+void sceneRender(){
+
 }
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height)
