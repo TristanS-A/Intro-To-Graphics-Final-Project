@@ -92,6 +92,7 @@ int main() {
 
     ew::Shader shader("assets/defaultLit.vert", "assets/defaultLit.frag");
     unsigned int brickTexture = ew::loadTexture("assets/brick_color.jpg",GL_REPEAT,GL_LINEAR);
+    unsigned int waterNormalText = ew::loadTexture("assets/waterNormalMap.png",GL_REPEAT,GL_LINEAR);
 
     ew::Shader fireShader("assets/fireShader.vert", "assets/fireShader.frag");
     ew::Shader waterShader("assets/waterShader.vert", "assets/waterShader.frag");
@@ -159,6 +160,7 @@ int main() {
 
         camera.position.y -= reflectionCamOffset;
         cameraController.pitch *= -1;
+
         glEnable(GL_CLIP_DISTANCE0);
         sceneRender(shader, fireShader, brickTexture, islandTransform, model, fireTransform, sphereMesh, waterTransform);
 
@@ -173,11 +175,15 @@ int main() {
         glDisable(GL_CLIP_DISTANCE0);
         sceneRender(shader, fireShader, brickTexture, islandTransform, model, fireTransform, sphereMesh, waterTransform);
 
-        //shader.setMat4("_ViewProjection", ew::Mat4{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1});
-        glBindTexture(GL_TEXTURE_2D, waterBuffers.getReflectionText());
-        shader.setInt("_Text_texture_diffuse", 0);
-
         waterShader.use();
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, waterBuffers.getReflectionText());
+        waterShader.setInt("_ReflectionTexture", 0);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, waterNormalText);
+        waterShader.setInt("_NormalMap", 1);
+        waterShader.setFloat("_Time", glfwGetTime());
+        waterShader.setVec3("_CamPos", camera.position);
         waterShader.setMat4("_ViewProjection", camera.ProjectionMatrix() * camera.ViewMatrix());
         waterShader.setMat4("_Model", waterTransform.getModelMatrix());
         waterMesh.draw();

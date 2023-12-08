@@ -13,6 +13,8 @@ out Surface{
 uniform mat4 _Model;
 uniform vec3 _NWorldVec;
 uniform mat4 _ViewProjection;
+uniform vec3 _CamPos;
+out vec3 toCamVec;
 
 void main(){
     vs_out.UV = vUV;
@@ -20,5 +22,6 @@ void main(){
     vs_out.WorldNormals = transpose(inverse(mat3(_Model))) * vNormal;
     vs_out.ClipSpace = _ViewProjection * _Model * vec4(vPos,1.0);
 
+    toCamVec = _CamPos - vs_out.WorldPos;
     gl_Position = vs_out.ClipSpace;
 }
