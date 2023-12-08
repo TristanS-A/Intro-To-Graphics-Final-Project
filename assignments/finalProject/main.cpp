@@ -31,11 +31,12 @@ ew::Vec3 bgColor = ew::Vec3(0.1f);
 ew::Camera camera;
 ew::CameraController cameraController;
 
-void sceneRender(ew::Shader shader, ew::Shader fireShader, unsigned int brickTexture, ew::Transform islandTransform, tsa::AssimpModel model, ew::Transform fireTransform, ew::Mesh sphereMesh){
+void sceneRender(ew::Shader shader, ew::Shader fireShader, unsigned int brickTexture, ew::Transform islandTransform, tsa::AssimpModel model, ew::Transform fireTransform, ew::Mesh sphereMesh, ew::Transform waterTransform){
     glClearColor(bgColor.x, bgColor.y,bgColor.z,1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     shader.use();
+    shader.setVec4("_ClipPlane", ew::Vec4(0, 1, 0, waterTransform.position.y));
     glBindTexture(GL_TEXTURE_2D, brickTexture);
     shader.setInt("_Text_texture_diffuse", 0);
     shader.setMat4("_ViewProjection", camera.ProjectionMatrix() * camera.ViewMatrix());
@@ -147,16 +148,19 @@ int main() {
 
         camera.position.y -= reflectionCamOffset;
         cameraController.pitch *= -1;
-        sceneRender(shader, fireShader, brickTexture, islandTransform, model, fireTransform, sphereMesh);
+        glEnable(GL_CLIP_DISTANCE0);
+        sceneRender(shader, fireShader, brickTexture, islandTransform, model, fireTransform, sphereMesh, waterTransform);
+
+        camera.position.y += reflectionCamOffset;
+        cameraController.pitch *= -1;
 
         waterBuffers.unbindWaterFrameBuffers(SCREEN_WIDTH, SCREEN_HEIGHT);
 
         glClearColor(bgColor.x, bgColor.y,bgColor.z,1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        camera.position.y += reflectionCamOffset;
-        cameraController.pitch *= -1;
-        sceneRender(shader, fireShader, brickTexture, islandTransform, model, fireTransform, sphereMesh);
+        glDisable(GL_CLIP_DISTANCE0);
+        sceneRender(shader, fireShader, brickTexture, islandTransform, model, fireTransform, sphereMesh, waterTransform);
 
         //shader.setMat4("_ViewProjection", ew::Mat4{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1});
         glBindTexture(GL_TEXTURE_2D, waterBuffers.getReflectionText());
