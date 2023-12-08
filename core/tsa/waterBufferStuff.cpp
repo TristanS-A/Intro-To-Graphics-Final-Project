@@ -92,17 +92,22 @@ namespace tsa {
     void tsa::WaterBuffers::bindReflectionFrameBuffer() {
         glBindTexture(GL_TEXTURE_2D, 0);//To make sure the texture isn't bound
         glBindFramebuffer(GL_FRAMEBUFFER, reflectionFrameBuffer);
-        //glViewport(0, 0, REFLECTION_WIDTH, REFLECTION_HEIGHT);
+        glViewport(0, 0, REFLECTION_WIDTH, REFLECTION_HEIGHT);
     }
 
     void tsa::WaterBuffers::bindRefractionFrameBuffer() {
         glBindTexture(GL_TEXTURE_2D, 0);//To make sure the texture isn't bound
         glBindFramebuffer(GL_FRAMEBUFFER, refractionFrameBuffer);
-        //glViewport(0, 0, REFRACTION_WIDTH, REFRACTION_HEIGHT);
+        glViewport(0, 0, REFRACTION_WIDTH, REFRACTION_HEIGHT);
     }
 
     void tsa::WaterBuffers::unbindCurrFrameBuffers() {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+
+    void tsa::WaterBuffers::unbindWaterFrameBuffers(int screenWidth, int screenHeight) {
+        unbindCurrFrameBuffers();
+        glViewport(0, 0, screenWidth, screenHeight);
     }
 
     GLuint tsa::WaterBuffers::getReflectionText() {

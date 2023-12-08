@@ -31,6 +31,32 @@ ew::Vec3 bgColor = ew::Vec3(0.1f);
 ew::Camera camera;
 ew::CameraController cameraController;
 
+void sceneRender(ew::Shader shader, ew::Shader fireShader, unsigned int brickTexture, ew::Transform islandTransform, tsa::AssimpModel model, ew::Transform fireTransform, ew::Mesh sphereMesh){
+    glClearColor(bgColor.x, bgColor.y,bgColor.z,1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    shader.use();
+    glBindTexture(GL_TEXTURE_2D, brickTexture);
+    shader.setInt("_Text_texture_diffuse", 0);
+    shader.setMat4("_ViewProjection", camera.ProjectionMatrix() * camera.ViewMatrix());
+
+    shader.setMat4("_Model", islandTransform.getModelMatrix());
+    model.Draw(shader);
+    glCullFace(GL_FRONT);
+    model.Draw(shader);
+    glCullFace(GL_BACK);
+
+    //Fire must be last because opacity and blending messes up if something is drawn after
+    fireShader.use();
+    fireShader.setFloat("_Time", glfwGetTime());
+    glBindTexture(GL_TEXTURE_2D, brickTexture);
+    fireShader.setInt("_Text_texture_diffuse", 0);
+    fireShader.setMat4("_ViewProjection", camera.ProjectionMatrix() * camera.ViewMatrix());
+    fireShader.setMat4("_Model", fireTransform.getModelMatrix());
+
+    sphereMesh.draw();
+}
+
 int main() {
     printf("Initializing...");
     if (!glfwInit()) {
@@ -66,6 +92,7 @@ int main() {
     unsigned int brickTexture = ew::loadTexture("assets/brick_color.jpg",GL_REPEAT,GL_LINEAR);
 
     ew::Shader fireShader("assets/fireShader.vert", "assets/fireShader.frag");
+    ew::Shader waterShader("assets/waterShader.vert", "assets/waterShader.frag");
 
     //Create cube
     ew::Mesh cubeMesh(ew::createCube(1.0f));
@@ -96,7 +123,7 @@ int main() {
 
     //Load model file
     //tsa::AssimpModel model("assets/models/testIsland.obj");
-    tsa::AssimpModel model("assets/models/zeldaIsland/zeldaIsland.obj");
+    tsa::AssimpModel model("assets/models/testIsland/testIsland.obj");
 
     //Create water buffers
     tsa::WaterBuffers waterBuffers;
@@ -115,51 +142,30 @@ int main() {
         waterBuffers.bindReflectionFrameBuffer();
 
         //RENDER
-        glClearColor(bgColor.x, bgColor.y,bgColor.z,1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        shader.use();
-        glBindTexture(GL_TEXTURE_2D, brickTexture);
-        shader.setInt("_Text_texture_diffuse", 0);
-        shader.setMat4("_ViewProjection", camera.ProjectionMatrix() * camera.ViewMatrix());
+        float reflectionCamOffset = 2 * (camera.position.y - waterTransform.position.y);
 
-        //Draw shapes
-        shader.setMat4("_Model", cubeTransform.getModelMatrix());
-        cubeMesh.draw();
+        camera.position.y -= reflectionCamOffset;
+        cameraController.pitch *= -1;
+        sceneRender(shader, fireShader, brickTexture, islandTransform, model, fireTransform, sphereMesh);
 
-        shader.setMat4("_Model", sphereTransform.getModelMatrix());
-        sphereMesh.draw();
-
-        shader.setMat4("_Model", islandTransform.getModelMatrix());
-        model.Draw(shader);
-        glCullFace(GL_FRONT);
-        model.Draw(shader);
-        glCullFace(GL_BACK);
-
-        //Fire must be last because opacity and blending messes up if something is drawn after
-        fireShader.use();
-        fireShader.setFloat("_Time", glfwGetTime());
-        glBindTexture(GL_TEXTURE_2D, brickTexture);
-        fireShader.setInt("_Text_texture_diffuse", 0);
-        fireShader.setMat4("_ViewProjection", camera.ProjectionMatrix() * camera.ViewMatrix());
-        fireShader.setMat4("_Model", fireTransform.getModelMatrix());
-
-        sphereMesh.draw();
-
-        shader.use();
-        shader.setMat4("_Model", waterTransform.getModelMatrix());
-        waterMesh.draw();
-
-        waterBuffers.unbindCurrFrameBuffers();
+        waterBuffers.unbindWaterFrameBuffers(SCREEN_WIDTH, SCREEN_HEIGHT);
 
         glClearColor(bgColor.x, bgColor.y,bgColor.z,1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        shader.setMat4("_ViewProjection", ew::Mat4{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1});
+        camera.position.y += reflectionCamOffset;
+        cameraController.pitch *= -1;
+        sceneRender(shader, fireShader, brickTexture, islandTransform, model, fireTransform, sphereMesh);
+
+        //shader.setMat4("_ViewProjection", ew::Mat4{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1});
         glBindTexture(GL_TEXTURE_2D, waterBuffers.getReflectionText());
         shader.setInt("_Text_texture_diffuse", 0);
-        shader.setMat4("_Model", testTransform.getModelMatrix());
-        testMesh.draw();
+
+        waterShader.use();
+        waterShader.setMat4("_ViewProjection", camera.ProjectionMatrix() * camera.ViewMatrix());
+        waterShader.setMat4("_Model", waterTransform.getModelMatrix());
+        waterMesh.draw();
 
         //TODO: Render point lights
 
@@ -204,10 +210,6 @@ int main() {
     }
     waterBuffers.cleanUpTime();
     printf("Shutting down...");
-}
-
-void sceneRender(){
-
 }
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height)

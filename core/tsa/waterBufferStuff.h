@@ -11,7 +11,7 @@ namespace tsa {
         WaterBuffers();
         void bindReflectionFrameBuffer();
         void bindRefractionFrameBuffer();
-        void unbindCurrFrameBuffers();
+        void unbindWaterFrameBuffers(int screenWidth, int screenHeight);
         GLuint getReflectionText();
         void cleanUpTime();
     private:
@@ -35,5 +35,6 @@ namespace tsa {
         int createTextureAttribute(int width, int height);
         int createDepthBufferAttribute(int width, int height);
         int createDepthTextureAttribute(int width, int height);
+        void unbindCurrFrameBuffers();
     };
 }
