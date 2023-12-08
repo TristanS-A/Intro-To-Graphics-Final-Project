@@ -17,6 +17,7 @@
 #include <assimp/Importer.hpp>
 #include <tsa/assimpModel.h>
 #include <iostream>
+#include <tsa/procGen.h>
 #include "tsa/waterBufferStuff.h"
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height);
@@ -94,6 +95,7 @@ int main() {
 
     ew::Shader fireShader("assets/fireShader.vert", "assets/fireShader.frag");
     ew::Shader waterShader("assets/waterShader.vert", "assets/waterShader.frag");
+    ew::Shader skyShader("assets/skyShader.vert", "assets/skyShader.frag");
 
     //Create cube
     ew::Mesh cubeMesh(ew::createCube(1.0f));
@@ -102,6 +104,13 @@ int main() {
     ew::Mesh cylinderMesh(ew::createCylinder(0.5f, 1.0f, 32));
     ew::Mesh testMesh(ew::createPlane(1.0, 1.0, 10));
 
+    //Create sky"box"
+    float rad = 50.0f;
+    int segments = 64;
+    float height = 25.0f;
+    ew::Mesh skyTop(tsa::createDomeTop(rad, segments));
+    ew::Mesh skyBot(tsa::createDomeBot(height, rad, segments));
+
     //Initialize transforms
     ew::Transform cubeTransform;
     ew::Transform waterTransform;
@@ -109,6 +118,8 @@ int main() {
     ew::Transform fireTransform;
     ew::Transform islandTransform;
     ew::Transform testTransform;
+    ew::Transform skyTransform;
+    ew::Transform seaTransform;
     waterTransform.position = ew::Vec3(0, -1.0, 0);
     sphereTransform.position = ew::Vec3(-1.5f, 0.0f, 0.0f);
     fireTransform.position = ew::Vec3(1.5f, 0.0f, 0.0f);
@@ -170,6 +181,19 @@ int main() {
         waterShader.setMat4("_ViewProjection", camera.ProjectionMatrix() * camera.ViewMatrix());
         waterShader.setMat4("_Model", waterTransform.getModelMatrix());
         waterMesh.draw();
+
+        skyTransform.position = ew::Vec3(0.0, 0.0, 0.0);
+        seaTransform.position = ew::Vec3(0.0, 0.0, 0.0);
+
+        skyShader.use();
+        skyShader.setMat4("_View", camera.ViewMatrix());
+        skyShader.setMat4("_Model", skyTransform.getModelMatrix());
+        skyShader.setInt("_Texture", brickTexture); //placeholder, replace with actual texture later
+        skyTop.draw();
+        skyShader.setMat4("_Model", seaTransform.getModelMatrix());
+        skyShader.setInt("_Texture", brickTexture); //placeholder, replace with actual texture later
+        skyBot.draw();
+
 
         //TODO: Render point lights
 
