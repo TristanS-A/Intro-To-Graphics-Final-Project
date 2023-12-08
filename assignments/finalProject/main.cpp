@@ -182,6 +182,14 @@ int main() {
         glEnable(GL_CLIP_DISTANCE0);
         sceneRender(shader, fireShader, brickTexture, islandTransform, model, fireTransform, sphereMesh, waterTransform);
 
+        //Assign data to light meshes
+        fireShader.use();
+        for (int i = 0; i < MAX_LIGHTS; i++) {
+            fireShader.setMat4("_Model", lightTransforms[i].getModelMatrix());
+            fireShader.setVec3("_Color", lights[i].color);
+            sphereMesh.draw();
+        }
+
         camera.position.y += reflectionCamOffset;
         cameraController.pitch *= -1;
 
@@ -222,6 +230,7 @@ int main() {
             fireShader.setVec3("_Color", lights[i].color);
             sphereMesh.draw();
         }
+
         skyTransform.position = ew::Vec3(0.0, 0.0, 0.0);
         seaTransform.position = ew::Vec3(0.0, 0.0, 0.0);
 
