@@ -22,6 +22,6 @@ void main(){
     vs_out.WorldNormals = transpose(inverse(mat3(_Model))) * vNormal;
     vs_out.ClipSpace = _ViewProjection * _Model * vec4(vPos,1.0);
 
-    toCamVec = _CamPos - vs_out.WorldPos;
+    toCamVec = normalize(_CamPos - vs_out.WorldPos);
     gl_Position = vs_out.ClipSpace;
 }

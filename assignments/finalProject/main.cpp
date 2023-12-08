@@ -20,6 +20,13 @@
 #include <tsa/procGen.h>
 #include "tsa/waterBufferStuff.h"
 
+#define MAX_LIGHTS 1
+
+struct Light {
+    ew::Vec3 position;
+    ew::Vec3 color;
+};
+
 void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 void resetCamera(ew::Camera& camera, ew::CameraController& cameraController);
 
@@ -141,6 +148,17 @@ int main() {
     //Create water buffers
     tsa::WaterBuffers waterBuffers;
 
+    //Create lights
+    Light lights[MAX_LIGHTS];
+    ew::Transform lightTransforms[MAX_LIGHTS];
+
+    lights[0] = {ew::Vec3(2.0f, 1.0f, 2.0f), ew::Vec3(0.6, 0.5, 0.0)};
+
+    for (int i = 0; i < MAX_LIGHTS; i++){
+        lightTransforms[i].position = lights[i].position;
+        lightTransforms[i].scale = ew::Vec3(0.5, 0.5, 0.5);
+    }
+
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
 
@@ -186,8 +204,24 @@ int main() {
         waterShader.setVec3("_CamPos", camera.position);
         waterShader.setMat4("_ViewProjection", camera.ProjectionMatrix() * camera.ViewMatrix());
         waterShader.setMat4("_Model", waterTransform.getModelMatrix());
+
+        //Assign light data to lit meshes
+        for (int i = 0; i < MAX_LIGHTS; i++){
+            lights[i].position = lightTransforms[i].position;
+            waterShader.setVec3("_Lights[" + std::to_string(i) + "].position", lights[i].position);
+            waterShader.setVec3("_Lights[" + std::to_string(i) + "].color", lights[i].color);
+        }
+
         waterMesh.draw();
 
+
+        //Assign data to light meshes
+        fireShader.use();
+        for (int i = 0; i < MAX_LIGHTS; i++) {
+            fireShader.setMat4("_Model", lightTransforms[i].getModelMatrix());
+            fireShader.setVec3("_Color", lights[i].color);
+            sphereMesh.draw();
+        }
         skyTransform.position = ew::Vec3(0.0, 0.0, 0.0);
         seaTransform.position = ew::Vec3(0.0, 0.0, 0.0);
 
@@ -199,6 +233,7 @@ int main() {
         skyShader.setMat4("_Model", seaTransform.getModelMatrix());
         skyShader.setInt("_Texture", brickTexture); //placeholder, replace with actual texture later
         skyBot.draw();
+
 
 
         //TODO: Render point lights
@@ -232,6 +267,15 @@ int main() {
             ImGui::DragFloat3("Fire Scale", &fireTransform.scale.x, 0.1);
             ImGui::DragFloat3("Island Scale", &islandTransform.scale.x, 0.1);
             ImGui::DragFloat3("Island Position", &islandTransform.position.x, 0.1);
+
+            if (ImGui::CollapsingHeader("Lights")) {
+                for (int i = 0; i < MAX_LIGHTS; i++) {
+                    if (ImGui::CollapsingHeader(("Light " + std::to_string(i + 1)).c_str())) {
+                        ImGui::DragFloat3("Light Position", &lightTransforms[i].position.x, 0.1f);
+                        ImGui::ColorEdit3("Light Color", &lights[i].color.x);
+                    }
+                }
+            }
 
             ImGui::ColorEdit3("BG color", &bgColor.x);
             ImGui::End();
