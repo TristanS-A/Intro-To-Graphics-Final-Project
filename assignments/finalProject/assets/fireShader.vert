@@ -133,8 +133,10 @@ void main(){
 
     //Uses noise as a height map using normals so that seems (with the same normals) don't seperate and animates with time
     //float height = 0.5 + 0.5 * pow(noise(noiseFrequency * vec2(vNormal.x * vNormal.z, vNormal.y * vNormal.z - _Time)), 1.0);
-    float height = 0.5 + 0.5 * pow(noise(noiseFrequency * vec2(vPos.x * vPos.z, vPos.y * vPos.z - _Time)), 1.0);
     //float height = pow(fbm(0.2 * vec2(vNormal.x * vNormal.z, vNormal.y * vNormal.z - _Time)), 1.0);
+
+    //Uses noise as a height map using position so that seems (with the same normals) don't seperate and animates with time
+    float height = 0.5 + 0.5 * pow(noise(noiseFrequency * vec2(vPos.x * vPos.z, vPos.y * vPos.z - _Time)), 1.0);
 
     //Scales the overall size of the mesh for each vertex
     //float overallScale = 0.5f;

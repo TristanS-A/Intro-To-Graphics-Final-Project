@@ -22,8 +22,9 @@ in vec3 toCamVec;
 uniform Light _Lights[MAX_LIGHTS];
 
 void main(){
-    vec2 distortionCords = texture(_NormalMap, fs_in.UV + _Time * 0.05).rg * 0.1;
-    distortionCords = fs_in.UV + distortionCords;
+    float distortionScale = 0.4;
+    vec2 distortionCords = texture(_NormalMap, fs_in.UV * distortionScale + _Time * 0.05).rg * 0.1;
+    distortionCords = fs_in.UV * distortionScale + distortionCords;
     vec2 totalDistortion = (texture(_NormalMap, distortionCords).rg * 2.0 - 1.0) * 0.02;
     
     //Calculates textcords in clip space
@@ -76,8 +77,12 @@ void main(){
     //Samples from reflection texture with reflection cords
     vec4 reflectTextColor = texture(_ReflectionTexture, reflectCords);
 
-    //Mixes between reflection color and 0 opacity (To see under/through the water
-    vec4 color = mix(vec4(reflectTextColor) + vec4(specularHighlights, 0.0), vec4(0, 0, 0, 0), fresnelVal);
+    vec4 waterColor = vec4(0, 0.5, 0.9, 1.0);
+    //Mixes between reflection color and waterColor
+    vec4 color = mix(vec4(reflectTextColor) + vec4(specularHighlights, 0.0), waterColor, 0.0);
+
+    //Mixes between new color and 0 opacity (To see under/through the water
+    color = mix(color, vec4(0, 0, 0, 0), fresnelVal);
 
     FragColor = vec4(color);
 }

@@ -34,12 +34,12 @@ int SCREEN_WIDTH = 1080;
 int SCREEN_HEIGHT = 720;
 
 float prevTime;
-ew::Vec3 bgColor = ew::Vec3(0.1f);
+ew::Vec3 bgColor = ew::Vec3(0.0, 0.0, 0.0);
 
 ew::Camera camera;
 ew::CameraController cameraController;
 
-void sceneRender(ew::Shader shader, ew::Shader fireShader, unsigned int brickTexture, ew::Transform islandTransform, tsa::AssimpModel model, ew::Transform fireTransform, ew::Mesh sphereMesh, ew::Transform waterTransform){
+void sceneRender(ew::Shader shader, unsigned int brickTexture, ew::Transform islandTransform, tsa::AssimpModel model, ew::Transform waterTransform){
     glClearColor(bgColor.x, bgColor.y,bgColor.z,1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -54,16 +54,6 @@ void sceneRender(ew::Shader shader, ew::Shader fireShader, unsigned int brickTex
     glCullFace(GL_FRONT);
     model.Draw(shader);
     glCullFace(GL_BACK);
-
-    //Fire must be last because opacity and blending messes up if something is drawn after
-    fireShader.use();
-    fireShader.setFloat("_Time", glfwGetTime());
-    glBindTexture(GL_TEXTURE_2D, brickTexture);
-    fireShader.setInt("_Text_texture_diffuse", 0);
-    fireShader.setMat4("_ViewProjection", camera.ProjectionMatrix() * camera.ViewMatrix());
-    fireShader.setMat4("_Model", fireTransform.getModelMatrix());
-
-    sphereMesh.draw();
 }
 
 int main() {
@@ -106,11 +96,8 @@ int main() {
     ew::Shader skyShader("assets/skyShader.vert", "assets/skyShader.frag");
 
     //Create cube
-    ew::Mesh cubeMesh(ew::createCube(1.0f));
-    ew::Mesh waterMesh(ew::createPlane(5.0f, 5.0f, 10));
+    ew::Mesh waterMesh(ew::createPlane(5.0f, 5.0f, 50));
     ew::Mesh sphereMesh(ew::createSphere(0.5f, 64));
-    ew::Mesh cylinderMesh(ew::createCylinder(0.5f, 1.0f, 32));
-    ew::Mesh testMesh(ew::createPlane(1.0, 1.0, 10));
 
     //Create sky"box"
     float rad = 50.0f;
@@ -180,10 +167,12 @@ int main() {
         cameraController.pitch *= -1;
 
         glEnable(GL_CLIP_DISTANCE0);
-        sceneRender(shader, fireShader, brickTexture, islandTransform, model, fireTransform, sphereMesh, waterTransform);
+        sceneRender(shader, brickTexture, islandTransform, model, waterTransform);
 
         //Assign data to light meshes
         fireShader.use();
+        fireShader.setMat4("_ViewProjection", camera.ProjectionMatrix() * camera.ViewMatrix());
+        fireShader.setFloat("_Time", glfwGetTime());
         for (int i = 0; i < MAX_LIGHTS; i++) {
             fireShader.setMat4("_Model", lightTransforms[i].getModelMatrix());
             fireShader.setVec3("_Color", lights[i].color);
@@ -199,7 +188,7 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glDisable(GL_CLIP_DISTANCE0);
-        sceneRender(shader, fireShader, brickTexture, islandTransform, model, fireTransform, sphereMesh, waterTransform);
+        sceneRender(shader, brickTexture, islandTransform, model, waterTransform);
 
         waterShader.use();
         glActiveTexture(GL_TEXTURE0);
@@ -213,7 +202,7 @@ int main() {
         waterShader.setMat4("_ViewProjection", camera.ProjectionMatrix() * camera.ViewMatrix());
         waterShader.setMat4("_Model", waterTransform.getModelMatrix());
 
-        //Assign light data to lit meshes
+        //Assign light data to lit shaders
         for (int i = 0; i < MAX_LIGHTS; i++){
             lights[i].position = lightTransforms[i].position;
             waterShader.setVec3("_Lights[" + std::to_string(i) + "].position", lights[i].position);
@@ -225,6 +214,10 @@ int main() {
 
         //Assign data to light meshes
         fireShader.use();
+        fireShader.setMat4("_ViewProjection", camera.ProjectionMatrix() * camera.ViewMatrix());
+        fireShader.setFloat("_Time", glfwGetTime());
+
+        //Render lights
         for (int i = 0; i < MAX_LIGHTS; i++) {
             fireShader.setMat4("_Model", lightTransforms[i].getModelMatrix());
             fireShader.setVec3("_Color", lights[i].color);
