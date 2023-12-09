@@ -230,10 +230,14 @@ int main() {
         skyShader.use();
         skyShader.setMat4("_View", camera.ViewMatrix());
         skyShader.setMat4("_Model", skyTransform.getModelMatrix());
-        skyShader.setInt("_Texture", brickTexture); //placeholder, replace with actual texture later
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, brickTexture);
+        skyShader.setInt("_Texture", 0); //placeholder, replace with actual texture later
         skyTop.draw();
         skyShader.setMat4("_Model", seaTransform.getModelMatrix());
-        skyShader.setInt("_Texture", brickTexture); //placeholder, replace with actual texture later
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, brickTexture);
+        skyShader.setInt("_Texture", 0); //placeholder, replace with actual texture later
         skyBot.draw();
 
 
