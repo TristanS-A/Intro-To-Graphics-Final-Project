@@ -58,7 +58,7 @@ void main(){
 		//Specular calculations
 		lightColor += _Lights[i].color * _Mat.specular * pow(max(dot(newNormals, normalize(halfVecPart / length(halfVecPart))), 0), _Mat.shininess) * newRange;
 
-		lightColor += _Lights[i].color * rimLighting;
+		lightColor += _Lights[i].color * smoothstep(0.0, 1.0, rimLighting);
 	}
 
 	//Sets texture and adds light colors
