@@ -129,7 +129,7 @@ int main() {
     //Create sky"box"
     float rad = 50.0f;
     int segments = 64;
-    float height = 25.0f;
+    float height = 50.0f;
     ew::Mesh skyTop(tsa::createDomeTop(rad, segments));
     ew::Mesh skyBot(tsa::createDomeBot(height, rad, segments));
 
@@ -255,20 +255,20 @@ int main() {
             sphereMesh.draw();
         }
 
-        skyTransform.position = ew::Vec3(0.0, 0.0, 0.0);
-        seaTransform.position = ew::Vec3(0.0, 0.0, 0.0);
+        skyTransform.position = camera.position;
+        seaTransform.position = camera.position;
 
         skyShader.use();
-        skyShader.setMat4("_View", camera.ViewMatrix());
+        skyShader.setMat4("_ViewProjection", camera.ProjectionMatrix() * camera.ViewMatrix());
         skyShader.setMat4("_Model", skyTransform.getModelMatrix());
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, brickTexture);
-        skyShader.setInt("_Texture", 0); //placeholder, replace with actual texture later
+        skyShader.setInt("_Texture", brickTexture); //placeholder, replace with actual texture later
         skyTop.draw();
         skyShader.setMat4("_Model", seaTransform.getModelMatrix());
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, brickTexture);
-        skyShader.setInt("_Texture", 0); //placeholder, replace with actual texture later
+        skyShader.setInt("_Texture", brickTexture); //placeholder, replace with actual texture later
         skyBot.draw();
 
 

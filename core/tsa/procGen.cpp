@@ -439,10 +439,10 @@ namespace tsa{
         for (int i = 0; i < columns; i++) {
             start = sideStart + i;
             newMesh.indices.push_back(start);
-            newMesh.indices.push_back(start + 1);
-            newMesh.indices.push_back(start + columns);
             newMesh.indices.push_back(start + columns);
             newMesh.indices.push_back(start + 1);
+            newMesh.indices.push_back(start + 1);
+            newMesh.indices.push_back(start + columns);
             newMesh.indices.push_back(start + columns + 1);
         }
 
@@ -450,8 +450,8 @@ namespace tsa{
         int center = numSegments * 4 + 5;
         for (int i = 0; i <= numSegments; i++) {
             newMesh.indices.push_back(start + i + 1);
-            newMesh.indices.push_back(center);
             newMesh.indices.push_back(start + i);
+            newMesh.indices.push_back(center);
         }
 
         return newMesh;
@@ -478,8 +478,8 @@ namespace tsa{
         int ringStart = numSegments + 1;
         for (int i = 0; i < numSegments; i++) {
             newMesh.indices.push_back(ringStart + i);
-            newMesh.indices.push_back(poleStart + i);
             newMesh.indices.push_back(ringStart + i + 1);
+            newMesh.indices.push_back(poleStart + i);
         }
 
         float columns = numSegments + 1;
@@ -487,10 +487,10 @@ namespace tsa{
             for (int col = 0; col < numSegments; col++) {
                 float start = row * columns + col;
                 newMesh.indices.push_back(start);
-                newMesh.indices.push_back(start + 1);
-                newMesh.indices.push_back(start + columns);
                 newMesh.indices.push_back(start + columns);
                 newMesh.indices.push_back(start + 1);
+                newMesh.indices.push_back(start + 1);
+                newMesh.indices.push_back(start + columns);
                 newMesh.indices.push_back(start + columns + 1);
             }
         }
