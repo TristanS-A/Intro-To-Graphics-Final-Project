@@ -171,7 +171,7 @@ int main() {
         lightTransforms[i].scale = ew::Vec3(0.5, 0.5, 0.5);
     }
 
-    Material islandMat = {0.1, 1.0, 500, 1.0};
+    Material islandMat = {0.0, 1.0, 500, 1.0};
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();

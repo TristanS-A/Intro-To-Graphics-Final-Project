@@ -27,17 +27,6 @@ uniform vec3 _CamPos;
 uniform Material _Mat;
 uniform float _Dist;
 
-//Calculates light color values
-float getLightEQ(vec3 newNormals, vec3 lightToFragVec, vec3 halfVecPart, vec3 camToFragVec, float dist){
-	float lightVal = _Mat.ambientK; //Ambient calculations part
-
-	lightVal += _Mat.diffuseK * max(dot(newNormals, lightToFragVec), 0) * dist; //Diffuse calculations part
-
-	//Specular calculations
-	lightVal += _Mat.specular * pow(max(dot(newNormals, normalize(halfVecPart / length(halfVecPart))), 0), _Mat.shininess) * dist;
-	return lightVal;
-}
-
 void main(){
 	//Calculate world normals and makes light variable
 	vec3 newNormals = normalize(fs_in.WorldNormals);
@@ -45,6 +34,8 @@ void main(){
 
 	//Calculates v vector
 	vec3 camToFragVec = normalize(_CamPos - fs_in.WorldPos);
+
+	float rimLighting;
 
 	//Run throug all current lights to calculate w vector and half vector and add colors
 	for (int i = 0; i < MAX_LIGHTS; i++){
@@ -57,11 +48,20 @@ void main(){
 		lightToFragVec = normalize(lightToFragVec);
 		vec3 halfVecPart = normalize(lightToFragVec + camToFragVec);
 
-		//Adds to final light color
-		lightColor += _Lights[i].color * getLightEQ(newNormals, lightToFragVec, halfVecPart, camToFragVec, _Lights[i].range / lightDist);
+		float newRange = _Lights[i].range / lightDist;
+
+		lightColor += _Lights[i].color * _Mat.ambientK; //Ambient calculations part
+
+		//Calculates rim lighting and counts as diffuse
+		rimLighting = _Mat.diffuseK * (1.0 - max(dot(-lightToFragVec, newNormals), 0.0)) * newRange;
+
+		//Specular calculations
+		lightColor += _Lights[i].color * _Mat.specular * pow(max(dot(newNormals, normalize(halfVecPart / length(halfVecPart))), 0), _Mat.shininess) * newRange;
+
+		lightColor += _Lights[i].color * rimLighting;
 	}
 
 	//Sets texture and adds light colors
 	vec4 newColor = texture(_Text_texture_diffuse,fs_in.UV);
-	FragColor = vec4(newColor.rgb * lightColor, 1.0);
+	FragColor = vec4(vec3(newColor.rgb * lightColor), 1.0);
 }
