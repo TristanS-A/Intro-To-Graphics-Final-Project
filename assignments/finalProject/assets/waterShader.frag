@@ -12,6 +12,7 @@ struct Light {
     vec3 position;
     vec3 color;
     float range;
+    float power;
 };
 
 uniform sampler2D _ReflectionTexture;
@@ -53,6 +54,9 @@ void main(){
 
     for (int i = 0; i < MAX_LIGHTS; i++){
 
+        //Scales light color by light power
+        vec3 newColor = _Lights[i].color * _Lights[i].power;
+
         //Base distence for light range
         float baseDistance = _Lights[i].range;
         
@@ -66,13 +70,12 @@ void main(){
 
         //Makes half vector for BLin-Phong specular calculations
         vec3 halfVecPart = normalize(lightToFragVec + toCamVec);
-        float lightVal = 0;
 
         //Calculates Blin-Phong specular highlights and scales intensity by distence using logorythmic falloff
-        lightVal += 1 * pow(max(dot(waterNormalVec, normalize(halfVecPart / length(halfVecPart))), 0), 50) * clamp(baseDistance - 1.2 * log(lightDist), 0, 500);
+        float lightVal = 1 * pow(max(dot(waterNormalVec, normalize(halfVecPart / length(halfVecPart))), 0), 50) * clamp(baseDistance - 1.2 * log(lightDist), 0, 500);
 
         //Adds lights to specular highlight color
-        specularHighlights += _Lights[i].color * lightVal;
+        specularHighlights += newColor * lightVal;
     }
 
     //Samples from reflection texture with reflection cords

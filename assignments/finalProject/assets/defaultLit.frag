@@ -11,6 +11,7 @@ struct Light {
 	vec3 position;
 	vec3 color;
 	float range;
+	float power;
 };
 
 struct Material {
@@ -41,6 +42,9 @@ void main(){
 	for (int i = 0; i < MAX_LIGHTS; i++){
 		vec3 lightToFragVec = _Lights[i].position - fs_in.WorldPos;
 
+		//Scales light color by light power
+		vec3 newColor = _Lights[i].color * _Lights[i].power;
+
 		//Gets light distance from mesh
 		float lightDist = length(lightToFragVec);
 
@@ -50,15 +54,17 @@ void main(){
 
 		float newRange = _Lights[i].range / lightDist;
 
-		lightColor += _Lights[i].color * _Mat.ambientK; //Ambient calculations part
+		float tempLightColor = _Mat.ambientK; //Ambient calculations part
 
 		//Calculates rim lighting and counts as diffuse
 		rimLighting = _Mat.diffuseK * (1.0 - max(dot(-lightToFragVec, newNormals), 0.0)) * newRange;
 
 		//Specular calculations
-		lightColor += _Lights[i].color * _Mat.specular * pow(max(dot(newNormals, normalize(halfVecPart / length(halfVecPart))), 0), _Mat.shininess) * newRange;
+		tempLightColor += _Mat.specular * pow(max(dot(newNormals, normalize(halfVecPart / length(halfVecPart))), 0), _Mat.shininess) * newRange;
 
-		lightColor += _Lights[i].color * smoothstep(0.0, 1.0, rimLighting);
+		tempLightColor += smoothstep(0.0, 1.0, rimLighting);
+
+		lightColor += newColor * tempLightColor;
 	}
 
 	//Sets texture and adds light colors

@@ -26,6 +26,7 @@ struct Light {
     ew::Vec3 position;
     ew::Vec3 color;
     float range;
+    float power;
 };
 
 struct Material {
@@ -65,6 +66,7 @@ void sceneRender(ew::Shader shader, unsigned int brickTexture, ew::Transform isl
         shader.setVec3("_Lights[" + std::to_string(i) + "].position", lights[i].position);
         shader.setVec3("_Lights[" + std::to_string(i) + "].color", lights[i].color);
         shader.setFloat("_Lights[" + std::to_string(i) + "].range", lights[i].range);
+        shader.setFloat("_Lights[" + std::to_string(i) + "].power", lights[i].power);
     }
 
     shader.setVec3("_CamPos", camera.position);
@@ -164,7 +166,7 @@ int main() {
     Light lights[MAX_LIGHTS];
     ew::Transform lightTransforms[MAX_LIGHTS];
 
-    lights[0] = {ew::Vec3(2.0f, 1.0f, 2.0f), ew::Vec3(0.6, 0.5, 0.0), 5};
+    lights[0] = {ew::Vec3(2.0f, 1.0f, 2.0f), ew::Vec3(0.6, 0.5, 0.0), 5, 1};
 
     for (int i = 0; i < MAX_LIGHTS; i++){
         lightTransforms[i].position = lights[i].position;
@@ -235,6 +237,7 @@ int main() {
             waterShader.setVec3("_Lights[" + std::to_string(i) + "].position", lights[i].position);
             waterShader.setVec3("_Lights[" + std::to_string(i) + "].color", lights[i].color);
             waterShader.setFloat("_Lights[" + std::to_string(i) + "].range", lights[i].range);
+            waterShader.setFloat("_Lights[" + std::to_string(i) + "].power", lights[i].power);
         }
 
         waterMesh.draw();
@@ -308,6 +311,7 @@ int main() {
                         ImGui::DragFloat3("Light Position", &lightTransforms[i].position.x, 0.1f);
                         ImGui::ColorEdit3("Light Color", &lights[i].color.x);
                         ImGui::DragFloat("Light Range", &lights[i].range);
+                        ImGui::DragFloat("Light Power", &lights[i].power);
                     }
                 }
             }
