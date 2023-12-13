@@ -25,6 +25,14 @@
 struct Light {
     ew::Vec3 position;
     ew::Vec3 color;
+    float range;
+};
+
+struct Material {
+    float ambientK;
+    float diffuseK;
+    float shininess;
+    float specular;
 };
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height);
@@ -39,11 +47,28 @@ ew::Vec3 bgColor = ew::Vec3(0.0, 0.0, 0.0);
 ew::Camera camera;
 ew::CameraController cameraController;
 
-void sceneRender(ew::Shader shader, unsigned int brickTexture, ew::Transform islandTransform, tsa::AssimpModel model, ew::Transform waterTransform){
+void sceneRender(ew::Shader shader, unsigned int brickTexture, ew::Transform islandTransform, tsa::AssimpModel model, ew::Transform waterTransform, Light lights[], ew::Transform lightTransforms[], Material islandMat){
     glClearColor(bgColor.x, bgColor.y,bgColor.z,1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     shader.use();
+
+    //Assign Material data to lit shaders
+    shader.setFloat("_Mat.ambientK", islandMat.ambientK);
+    shader.setFloat("_Mat.diffuseK", islandMat.diffuseK);
+    shader.setFloat("_Mat.shininess", islandMat.shininess);
+    shader.setFloat("_Mat.specular", islandMat.specular);
+
+    //Assign light data to lit shaders
+    for (int i = 0; i < MAX_LIGHTS; i++){
+        lights[i].position = lightTransforms[i].position;
+        shader.setVec3("_Lights[" + std::to_string(i) + "].position", lights[i].position);
+        shader.setVec3("_Lights[" + std::to_string(i) + "].color", lights[i].color);
+        shader.setFloat("_Lights[" + std::to_string(i) + "].range", lights[i].range);
+    }
+
+    shader.setVec3("_CamPos", camera.position);
+
     shader.setVec4("_ClipPlane", ew::Vec4(0, 1, 0, waterTransform.position.y));
     glBindTexture(GL_TEXTURE_2D, brickTexture);
     shader.setInt("_Text_texture_diffuse", 0);
@@ -139,12 +164,14 @@ int main() {
     Light lights[MAX_LIGHTS];
     ew::Transform lightTransforms[MAX_LIGHTS];
 
-    lights[0] = {ew::Vec3(2.0f, 1.0f, 2.0f), ew::Vec3(0.6, 0.5, 0.0)};
+    lights[0] = {ew::Vec3(2.0f, 1.0f, 2.0f), ew::Vec3(0.6, 0.5, 0.0), 5};
 
     for (int i = 0; i < MAX_LIGHTS; i++){
         lightTransforms[i].position = lights[i].position;
         lightTransforms[i].scale = ew::Vec3(0.5, 0.5, 0.5);
     }
+
+    Material islandMat = {0.1, 1.0, 500, 1.0};
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
@@ -167,7 +194,7 @@ int main() {
         cameraController.pitch *= -1;
 
         glEnable(GL_CLIP_DISTANCE0);
-        sceneRender(shader, brickTexture, islandTransform, model, waterTransform);
+        sceneRender(shader, brickTexture, islandTransform, model, waterTransform, lights, lightTransforms, islandMat);
 
         //Assign data to light meshes
         fireShader.use();
@@ -188,7 +215,7 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glDisable(GL_CLIP_DISTANCE0);
-        sceneRender(shader, brickTexture, islandTransform, model, waterTransform);
+        sceneRender(shader, brickTexture, islandTransform, model, waterTransform, lights, lightTransforms, islandMat);
 
         waterShader.use();
         glActiveTexture(GL_TEXTURE0);
@@ -202,11 +229,12 @@ int main() {
         waterShader.setMat4("_ViewProjection", camera.ProjectionMatrix() * camera.ViewMatrix());
         waterShader.setMat4("_Model", waterTransform.getModelMatrix());
 
-        //Assign light data to lit shaders
+        //Assign light data to water shaders
         for (int i = 0; i < MAX_LIGHTS; i++){
             lights[i].position = lightTransforms[i].position;
             waterShader.setVec3("_Lights[" + std::to_string(i) + "].position", lights[i].position);
             waterShader.setVec3("_Lights[" + std::to_string(i) + "].color", lights[i].color);
+            waterShader.setFloat("_Lights[" + std::to_string(i) + "].range", lights[i].range);
         }
 
         waterMesh.draw();
@@ -279,6 +307,7 @@ int main() {
                     if (ImGui::CollapsingHeader(("Light " + std::to_string(i + 1)).c_str())) {
                         ImGui::DragFloat3("Light Position", &lightTransforms[i].position.x, 0.1f);
                         ImGui::ColorEdit3("Light Color", &lights[i].color.x);
+                        ImGui::DragFloat("Light Range", &lights[i].range);
                     }
                 }
             }

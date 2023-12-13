@@ -11,6 +11,7 @@ in Surface{
 struct Light {
     vec3 position;
     vec3 color;
+    float range;
 };
 
 uniform sampler2D _ReflectionTexture;
@@ -50,10 +51,10 @@ void main(){
     //Specular lighting calculations
     vec3 specularHighlights = vec3(0, 0, 0);
 
-    //Base distence for light range
-    float baseDistance = 2;
-
     for (int i = 0; i < MAX_LIGHTS; i++){
+
+        //Base distence for light range
+        float baseDistance = _Lights[i].range;
         
         //Gets vector from worldPos to light
         vec3 lightToFragVec = _Lights[i].position - fs_in.WorldPos;
@@ -68,7 +69,7 @@ void main(){
         float lightVal = 0;
 
         //Calculates Blin-Phong specular highlights and scales intensity by distence using logorythmic falloff
-        lightVal += 1 * pow(max(dot(waterNormalVec, normalize(halfVecPart / length(halfVecPart))), 0), 50) * clamp(baseDistance + -log(lightDist), 0, 500);
+        lightVal += 1 * pow(max(dot(waterNormalVec, normalize(halfVecPart / length(halfVecPart))), 0), 50) * clamp(baseDistance - 1.2 * log(lightDist), 0, 500);
 
         //Adds lights to specular highlight color
         specularHighlights += _Lights[i].color * lightVal;
