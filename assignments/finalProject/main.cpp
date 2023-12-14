@@ -48,7 +48,7 @@ ew::Vec3 bgColor = ew::Vec3(0.0, 0.0, 0.0);
 ew::Camera camera;
 ew::CameraController cameraController;
 
-void sceneRender(ew::Shader shader, unsigned int brickTexture, ew::Transform islandTransform, tsa::AssimpModel model, ew::Transform waterTransform, Light lights[], ew::Transform lightTransforms[], Material islandMat, ew::Shader skyShader, ew::Transform skyTransform, ew::Transform seaTransform, ew::Mesh skyTop, ew::Mesh skyBot, bool extraLight){
+void sceneRender(ew::Shader shader, unsigned int brickTexture, ew::Transform islandTransform, tsa::AssimpModel model, ew::Transform waterTransform, Light lights[], ew::Transform lightTransforms[], Material islandMat, ew::Shader skyShader, ew::Transform skyTransform, ew::Transform seaTransform, ew::Mesh skyTop, ew::Mesh skyBot, bool extraLight, tsa::AssimpModel firepit, ew::Transform firepitTransform){
     glClearColor(bgColor.x, bgColor.y,bgColor.z,1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -88,15 +88,22 @@ void sceneRender(ew::Shader shader, unsigned int brickTexture, ew::Transform isl
 
     shader.setVec3("_CamPos", camera.position);
 
-    shader.setVec4("_ClipPlane", ew::Vec4(0, 1, 0, waterTransform.position.y));
-    glBindTexture(GL_TEXTURE_2D, brickTexture);
-    shader.setInt("_Text_texture_diffuse", 0);
-    shader.setMat4("_ViewProjection", camera.ProjectionMatrix() * camera.ViewMatrix());
+    //Sets clipping plane to cut everything under the water level in the reflection (an offset is used here)
+    shader.setVec4("_ClipPlane", ew::Vec4(0, 1, 0, waterTransform.position.y + 6));
 
+    shader.setMat4("_ViewProjection", camera.ProjectionMatrix() * camera.ViewMatrix());
     shader.setMat4("_Model", islandTransform.getModelMatrix());
+
     model.Draw(shader);
     glCullFace(GL_FRONT);
     model.Draw(shader);
+    glCullFace(GL_BACK);
+
+    shader.setMat4("_Model", firepitTransform.getModelMatrix());
+
+    firepit.Draw(shader);
+    glCullFace(GL_FRONT);
+    firepit.Draw(shader);
     glCullFace(GL_BACK);
 }
 
@@ -177,18 +184,16 @@ int main() {
     //Initialize transforms
     ew::Transform waterTransform;
     ew::Transform sphereTransform;
-    ew::Transform fireTransform;
     ew::Transform islandTransform;
-    ew::Transform testTransform;
+    ew::Transform firepitTransform;
     ew::Transform skyTransform;
     ew::Transform seaTransform;
     waterTransform.position = ew::Vec3(0, -3.0, 0);
     waterTransform.scale = ew::Vec3(20, 1, 20);
     sphereTransform.position = ew::Vec3(-1.5f, 0.0f, 0.0f);
-    fireTransform.position = ew::Vec3(1.5f, 0.0f, 0.0f);
     islandTransform.position = ew::Vec3(2.2, 0.4, 2.7);
-    testTransform.rotation = ew::Vec3(90, 0, 0);
-    testTransform.position = ew::Vec3(0, 0, 0);
+    firepitTransform.scale = ew::Vec3(0.4, 0.4, 0.4);
+    firepitTransform.position = ew::Vec3(2, 0.56, 2);
 
     resetCamera(camera,cameraController);
 
@@ -200,6 +205,9 @@ int main() {
     //tsa::AssimpModel model("assets/models/testIsland.obj");
     tsa::AssimpModel cartoonIslandModel("assets/models/zeldaIsland/zeldaIsland.obj");
     tsa::AssimpModel realisticIslandModel("assets/models/realisticIsland/realIsland.obj");
+    tsa::AssimpModel cartoonFirepit("assets/models/firepit/firepit.obj");
+    tsa::AssimpModel realisticFirepit("assets/models/firepit/firepit2.obj");
+    tsa::AssimpModel currFirepit = realisticFirepit;
     tsa::AssimpModel currModel = realisticIslandModel;
 
     bool realIsland = true;
@@ -213,7 +221,7 @@ int main() {
     Light lights[MAX_LIGHTS];
     ew::Transform lightTransforms[MAX_LIGHTS];
 
-    lights[0] = {ew::Vec3(2.0f, 1.0f, 2.0f), ew::Vec3(0.6, 0.5, 0.0), 2, 1};
+    lights[0] = {ew::Vec3(2.0f, 0.91f, 2.0f), ew::Vec3(0.6, 0.5, 0.0), 2, 1};
     lights[1] = {ew::Vec3(-40.0f, 50.0f, 2.0f), ew::Vec3(1, 1, 1), 50, 1};
 
     for (int i = 0; i < MAX_LIGHTS; i++){
@@ -243,11 +251,11 @@ int main() {
 
         float reflectionCamOffset = 2 * (camera.position.y - waterTransform.position.y);
 
-        camera.position.y -= reflectionCamOffset;
+        //camera.position.y -= reflectionCamOffset;
         cameraController.pitch *= -1;
 
         glEnable(GL_CLIP_DISTANCE0);
-        sceneRender(currLightingShader, brickTexture, islandTransform, currModel, waterTransform, lights, lightTransforms, islandMat, skyShader, skyTransform, seaTransform, skyTop, skyBot, extraLight);
+        sceneRender(currLightingShader, brickTexture, islandTransform, currModel, waterTransform, lights, lightTransforms, islandMat, skyShader, skyTransform, seaTransform, skyTop, skyBot, extraLight, currFirepit, firepitTransform);
 
         //Assign data to light meshes
         currFireShader.use();
@@ -259,7 +267,7 @@ int main() {
             sphereMesh.draw();
         }
 
-        camera.position.y += reflectionCamOffset;
+        //camera.position.y += reflectionCamOffset;
         cameraController.pitch *= -1;
 
         waterBuffers.unbindWaterFrameBuffers(SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -268,7 +276,7 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glDisable(GL_CLIP_DISTANCE0);
-        sceneRender(currLightingShader, brickTexture, islandTransform, currModel, waterTransform, lights, lightTransforms, islandMat, skyShader, skyTransform, seaTransform, skyTop, skyBot, extraLight);
+        sceneRender(currLightingShader, brickTexture, islandTransform, currModel, waterTransform, lights, lightTransforms, islandMat, skyShader, skyTransform, seaTransform, skyTop, skyBot, extraLight, currFirepit, firepitTransform);
 
         currWaterShader.use();
         glActiveTexture(GL_TEXTURE0);
@@ -339,9 +347,9 @@ int main() {
                 }
             }
 
-            ImGui::DragFloat3("Fire Scale", &fireTransform.scale.x, 0.1);
             ImGui::DragFloat3("Island Scale", &islandTransform.scale.x, 0.1);
             ImGui::DragFloat3("Island Position", &islandTransform.position.x, 0.1);
+            ImGui::DragFloat3("Firepit Position", &firepitTransform.position.x, 0.1);
 
             if (ImGui::CollapsingHeader("Lights")) {
                 for (int i = 0; i < MAX_LIGHTS; i++) {
@@ -381,6 +389,7 @@ int main() {
 
                     currLightingShader = realisticLighting;
                     currFireShader = realisticFireShader;
+                    currFirepit = realisticFirepit;
                     realLighting = true;
                 }
             }
@@ -401,6 +410,7 @@ int main() {
 
                     currLightingShader = cartoonLighting;
                     currFireShader = cartoonFireShader;
+                    currFirepit = cartoonFirepit;
                     realLighting = false;
                 }
             }
@@ -434,7 +444,7 @@ void framebufferSizeCallback(GLFWwindow* window, int width, int height)
 }
 
 void resetCamera(ew::Camera& camera, ew::CameraController& cameraController) {
-    camera.position = ew::Vec3(0, 0, 5);
+    camera.position = ew::Vec3(0, 4, 5);
     camera.target = ew::Vec3(0);
     camera.fov = 60.0f;
     camera.orthoHeight = 6.0f;
