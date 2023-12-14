@@ -17,18 +17,21 @@ uniform vec3 _CamPos;
 out vec3 toCamVec;
 uniform sampler2D _NormalMap;
 uniform float _Time;
+uniform float _WaveTileing;
+uniform float _WaveHeight;
+uniform float _WaveSpeed;
 
 void main(){
     float distortionScale = 0.01;
-    vec2 distortionCords = texture(_NormalMap, vUV * distortionScale + _Time * 0.01).rg * 0.1;
-    distortionCords = vUV * distortionScale + distortionCords;
+    vec2 distortionCords = texture(_NormalMap, vUV * _WaveTileing + _Time * 0.01 * _WaveSpeed).rg * 0.1;
+    distortionCords = vUV * _WaveTileing + distortionCords;
     float height = (texture(_NormalMap, distortionCords).r * 2.0 - 1.0) * 0.02;
 
     //Scales distortion power
     float distortionPower = 50;
 
     //Adds distortion to vertex in the direction of the normals
-    vec3 newPos = (vPos + normalize(vNormal) * (height * distortionPower));
+    vec3 newPos = (vPos + normalize(vNormal) * (height * distortionPower * _WaveHeight));
 
     vs_out.UV = vUV;
     vs_out.WorldPos = vec3(_Model * vec4(newPos,1.0));

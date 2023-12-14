@@ -18,16 +18,17 @@ struct Light {
 uniform sampler2D _ReflectionTexture;
 uniform sampler2D _NormalMap;
 uniform float _Time;
+uniform float _DistortionSpeed;
+uniform float _Tileing;
+uniform bool _EnableSpecHighlights;
 in vec3 toCamVec;
 
-#define MAX_LIGHTS 1
+#define MAX_LIGHTS 2
 uniform Light _Lights[MAX_LIGHTS];
 
 void main(){
-    float distortionScale = 0.1;
-    vec2 distortionCords = texture(_NormalMap, fs_in.UV * distortionScale + _Time * 0.05).rg * 0.1;
-    distortionCords = fs_in.UV * distortionScale + distortionCords;
-    vec2 totalDistortion = (texture(_NormalMap, distortionCords).rg * 2.0 - 1.0) * 0.02;
+    vec2 distortionCords = texture(_NormalMap, fs_in.UV * _Tileing + _Time * 0.05 * _DistortionSpeed).rg * 0.1;
+    distortionCords = fs_in.UV * _Tileing + distortionCords;
 
     //Gets normal map color and makes normal vector from it
     vec4 waterNormalColor = texture(_NormalMap, distortionCords);
@@ -63,16 +64,21 @@ void main(){
     }
 
     //Alternative water color
-    float waterStep = step(texture(_NormalMap, fs_in.UV * 0.1 + _Time * 0.05).r * 0.1, 0.07);
+    float waterStep = step(texture(_NormalMap, fs_in.UV * _Tileing + _Time * 0.05 * _DistortionSpeed).r * 0.1, 0.07);
     vec3 waterCol = mix(vec3(1.0, 1.0, 1.0), vec3(0.0, 0.5, 1.0), waterStep);
-    waterStep = step(texture(_NormalMap, (fs_in.UV) * 0.1 + _Time * 0.05).r * 0.1, 0.05);
-    waterCol = mix(waterCol, vec3(0.0, 0.1, 0.5), waterStep);
+    waterStep = step(texture(_NormalMap, (fs_in.UV) * _Tileing + _Time * 0.05).r * 0.1, 0.05);
+    waterCol = mix(waterCol, vec3(0.0, 0.4, 0.9), waterStep);
 
-    vec4 waterColor = vec4(0, 0.5, 0.9, 1.0);
+    vec3 color;
 
-    //Mixes between reflection color and waterColor
-    vec4 color = mix(vec4(waterCol, 1.0) + vec4(step(1.0, specularHighlights), 1.0), waterColor, 0.0);
+    //Branch to add specular highlights to water
+    if (_EnableSpecHighlights){
+        color = waterCol + vec3(step(1.0, specularHighlights));
+    }
+    else{
+        color = waterCol;
+    }
 
 
-    FragColor = color;
+    FragColor = vec4(color, 1.0);
 }
