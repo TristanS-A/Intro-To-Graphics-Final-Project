@@ -20,9 +20,10 @@ uniform sampler2D _NormalMap;
 uniform float _Time;
 uniform float _DistortionSpeed;
 uniform float _Tileing;
+uniform bool _EnableSpecHighlights;
 in vec3 toCamVec;
 
-#define MAX_LIGHTS 1
+#define MAX_LIGHTS 2
 uniform Light _Lights[MAX_LIGHTS];
 
 void main(){
@@ -84,8 +85,18 @@ void main(){
 
     vec4 waterColor = vec4(0, 0.5, 0.9, 1.0);
 
-    //Mixes between reflection color and waterColor
-    vec4 color = mix(vec4(reflectTextColor) + vec4(specularHighlights, 0.0), waterColor, 0.3);
+    vec4 color;
+
+    //Branch to turn on/off specular highlights
+    if (_EnableSpecHighlights) {
+
+        //Mixes between reflection color and waterColor using specular highlights
+        color = mix(vec4(reflectTextColor) + vec4(specularHighlights, 0.0), waterColor, 0.3);
+    }
+    else{
+        //Mixes betweem reflection color and water color wihtout specular highlights
+        color = mix(vec4(reflectTextColor), waterColor, 0.3);
+    }
 
     //Mixes between new color and 0 opacity (To see under/through the water
     color = mix(color, vec4(0, 0, 0, 0), fresnelVal);

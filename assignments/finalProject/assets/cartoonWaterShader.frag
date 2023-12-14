@@ -20,9 +20,10 @@ uniform sampler2D _NormalMap;
 uniform float _Time;
 uniform float _DistortionSpeed;
 uniform float _Tileing;
+uniform bool _EnableSpecHighlights;
 in vec3 toCamVec;
 
-#define MAX_LIGHTS 1
+#define MAX_LIGHTS 2
 uniform Light _Lights[MAX_LIGHTS];
 
 void main(){
@@ -68,11 +69,16 @@ void main(){
     waterStep = step(texture(_NormalMap, (fs_in.UV) * _Tileing + _Time * 0.05).r * 0.1, 0.05);
     waterCol = mix(waterCol, vec3(0.0, 0.4, 0.9), waterStep);
 
-    vec4 waterColor = vec4(0, 0.5, 0.9, 1.0);
+    vec3 color;
 
-    //Mixes between reflection color and waterColor
-    vec4 color = mix(vec4(waterCol, 1.0) + vec4(step(1.0, specularHighlights), 1.0), waterColor, 0.0);
+    //Branch to add specular highlights to water
+    if (_EnableSpecHighlights){
+        color = waterCol + vec3(step(1.0, specularHighlights));
+    }
+    else{
+        color = waterCol;
+    }
 
 
-    FragColor = color;
+    FragColor = vec4(color, 1.0);
 }

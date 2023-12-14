@@ -21,7 +21,7 @@ struct Material {
 	float specular;
 };
 
-#define MAX_LIGHTS 1
+#define MAX_LIGHTS 2
 uniform Light _Lights[MAX_LIGHTS];
 uniform sampler2D _Text_texture_diffuse;
 uniform vec3 _CamPos;

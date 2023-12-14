@@ -20,7 +20,7 @@
 #include <tsa/procGen.h>
 #include "tsa/waterBufferStuff.h"
 
-#define MAX_LIGHTS 1
+#define MAX_LIGHTS 2
 
 struct Light {
     ew::Vec3 position;
@@ -204,6 +204,7 @@ int main() {
 
     bool realIsland = true;
     bool cartoonIsland = false;
+    bool realLighting = true;
 
     //Create water buffers
     tsa::WaterBuffers waterBuffers;
@@ -212,7 +213,8 @@ int main() {
     Light lights[MAX_LIGHTS];
     ew::Transform lightTransforms[MAX_LIGHTS];
 
-    lights[0] = {ew::Vec3(2.0f, 1.0f, 2.0f), ew::Vec3(0.6, 0.5, 0.0), 5, 1};
+    lights[0] = {ew::Vec3(2.0f, 1.0f, 2.0f), ew::Vec3(0.6, 0.5, 0.0), 2, 1};
+    lights[1] = {ew::Vec3(-40.0f, 50.0f, 2.0f), ew::Vec3(1, 1, 1), 50, 1};
 
     for (int i = 0; i < MAX_LIGHTS; i++){
         lightTransforms[i].position = lights[i].position;
@@ -220,6 +222,7 @@ int main() {
     }
 
     bool extraLight = false;
+    bool enableSpecHighlights = true;
 
     Material islandMat = {0.0, 1.0, 50, 1.0};
 
@@ -280,6 +283,7 @@ int main() {
         currWaterShader.setFloat("_WaveHeight", *waveHeight);
         currWaterShader.setFloat("_DistortionSpeed", *distortionSpeed);
         currWaterShader.setFloat("_WaveSpeed", *waveSpeed);
+        currWaterShader.setFloat("_EnableSpecHighlights", enableSpecHighlights);
         currWaterShader.setVec3("_CamPos", camera.position);
         currWaterShader.setMat4("_ViewProjection", camera.ProjectionMatrix() * camera.ViewMatrix());
         currWaterShader.setMat4("_Model", waterTransform.getModelMatrix());
@@ -349,6 +353,7 @@ int main() {
                     }
                 }
                 ImGui::Checkbox("Extra Detail (Only for Cartoon Lighting)", &extraLight);
+                ImGui::Checkbox("Enable Specular Highlights on Water", &enableSpecHighlights);
             }
 
             if (ImGui::CollapsingHeader("Water")) {
@@ -376,6 +381,7 @@ int main() {
 
                     currLightingShader = realisticLighting;
                     currFireShader = realisticFireShader;
+                    realLighting = true;
                 }
             }
             if (ImGui::Checkbox("'Cartoon' Scene", &cartoonIsland)){
@@ -395,9 +401,17 @@ int main() {
 
                     currLightingShader = cartoonLighting;
                     currFireShader = cartoonFireShader;
+                    realLighting = false;
                 }
             }
 
+            if (ImGui::Checkbox("Lighting Toggle (Realistic and Cartoon)", &realLighting)) {
+                if (realLighting) {
+                    currLightingShader = realisticLighting;
+                } else {
+                    currLightingShader = cartoonLighting;
+                }
+            }
 
             ImGui::ColorEdit3("BG color", &bgColor.x);
             ImGui::End();
