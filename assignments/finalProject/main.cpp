@@ -137,7 +137,9 @@ int main() {
     unsigned int brickTexture = ew::loadTexture("assets/brick_color.jpg",GL_REPEAT,GL_LINEAR);
     unsigned int waterNormalText = ew::loadTexture("assets/waterNormalMap.png",GL_REPEAT,GL_LINEAR);
 
-    ew::Shader fireShader("assets/fireShader.vert", "assets/fireShader.frag");
+    ew::Shader realisticFireShader("assets/fireShader.vert", "assets/fireShader.frag");
+    ew::Shader cartoonFireShader("assets/fireShader.vert", "assets/cartoonFire.frag");
+    ew::Shader currFireShader = realisticFireShader;
     ew::Shader realisticWaterShader("assets/waterShader.vert", "assets/waterShader.frag");
     ew::Shader cartoonWaterShader("assets/cartoonWaterShader.vert", "assets/cartoonWaterShader.frag");
     ew::Shader currWaterShader = realisticWaterShader;
@@ -245,12 +247,12 @@ int main() {
         sceneRender(currLightingShader, brickTexture, islandTransform, currModel, waterTransform, lights, lightTransforms, islandMat, skyShader, skyTransform, seaTransform, skyTop, skyBot, extraLight);
 
         //Assign data to light meshes
-        fireShader.use();
-        fireShader.setMat4("_ViewProjection", camera.ProjectionMatrix() * camera.ViewMatrix());
-        fireShader.setFloat("_Time", glfwGetTime());
+        currFireShader.use();
+        currFireShader.setMat4("_ViewProjection", camera.ProjectionMatrix() * camera.ViewMatrix());
+        currFireShader.setFloat("_Time", glfwGetTime());
         for (int i = 0; i < MAX_LIGHTS; i++) {
-            fireShader.setMat4("_Model", lightTransforms[i].getModelMatrix());
-            fireShader.setVec3("_Color", lights[i].color);
+            currFireShader.setMat4("_Model", lightTransforms[i].getModelMatrix());
+            currFireShader.setVec3("_Color", lights[i].color);
             sphereMesh.draw();
         }
 
@@ -296,14 +298,14 @@ int main() {
 
 
         //Assign data to light meshes
-        fireShader.use();
-        fireShader.setMat4("_ViewProjection", camera.ProjectionMatrix() * camera.ViewMatrix());
-        fireShader.setFloat("_Time", glfwGetTime());
+        currFireShader.use();
+        currFireShader.setMat4("_ViewProjection", camera.ProjectionMatrix() * camera.ViewMatrix());
+        currFireShader.setFloat("_Time", glfwGetTime());
 
         //Render lights
         for (int i = 0; i < MAX_LIGHTS; i++) {
-            fireShader.setMat4("_Model", lightTransforms[i].getModelMatrix());
-            fireShader.setVec3("_Color", lights[i].color);
+            currFireShader.setMat4("_Model", lightTransforms[i].getModelMatrix());
+            currFireShader.setVec3("_Color", lights[i].color);
             sphereMesh.draw();
         }
 
@@ -373,6 +375,7 @@ int main() {
                     waveSpeed = &realisticWaveSpeed;
 
                     currLightingShader = realisticLighting;
+                    currFireShader = realisticFireShader;
                 }
             }
             if (ImGui::Checkbox("'Cartoon' Scene", &cartoonIsland)){
@@ -391,6 +394,7 @@ int main() {
                     waveSpeed = &cartoonWaveSpeed;
 
                     currLightingShader = cartoonLighting;
+                    currFireShader = cartoonFireShader;
                 }
             }
 

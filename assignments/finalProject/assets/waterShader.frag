@@ -82,16 +82,10 @@ void main(){
     //Samples from reflection texture with reflection cords
     vec4 reflectTextColor = texture(_ReflectionTexture, reflectCords);
 
-    //Alternative water color
-    float waterStep = step(texture(_NormalMap, fs_in.UV * 0.1 + _Time * 0.05).r * 0.1, 0.07);
-    vec3 waterCol = mix(vec3(1.0, 1.0, 1.0), vec3(0.0, 0.5, 1.0), waterStep);
-    waterStep = step(texture(_NormalMap, (fs_in.UV) * 0.1 + _Time * 0.05).r * 0.1, 0.05);
-    waterCol = mix(waterCol, vec3(0.0, 0.1, 0.5), waterStep);
-
-    vec4 waterColor = vec4(0, 0.0, 0.9, 1.0);
+    vec4 waterColor = vec4(0, 0.5, 0.9, 1.0);
 
     //Mixes between reflection color and waterColor
-    vec4 color = mix(vec4(reflectTextColor) + vec4(specularHighlights, 0.0), waterColor, 0.2);
+    vec4 color = mix(vec4(reflectTextColor) + vec4(specularHighlights, 0.0), waterColor, 0.3);
 
     //Mixes between new color and 0 opacity (To see under/through the water
     color = mix(color, vec4(0, 0, 0, 0), fresnelVal);
