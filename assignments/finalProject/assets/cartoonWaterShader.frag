@@ -18,6 +18,8 @@ struct Light {
 uniform sampler2D _ReflectionTexture;
 uniform sampler2D _NormalMap;
 uniform float _Time;
+uniform float _DistortionSpeed;
+uniform float _Tileing;
 in vec3 toCamVec;
 
 #define MAX_LIGHTS 1
@@ -25,9 +27,8 @@ uniform Light _Lights[MAX_LIGHTS];
 
 void main(){
     float distortionScale = 0.1;
-    vec2 distortionCords = texture(_NormalMap, fs_in.UV * distortionScale + _Time * 0.05).rg * 0.1;
-    distortionCords = fs_in.UV * distortionScale + distortionCords;
-    vec2 totalDistortion = (texture(_NormalMap, distortionCords).rg * 2.0 - 1.0) * 0.02;
+    vec2 distortionCords = texture(_NormalMap, fs_in.UV * _Tileing + _Time * 0.05 * _DistortionSpeed).rg * 0.1;
+    distortionCords = fs_in.UV * _Tileing + distortionCords;
 
     //Gets normal map color and makes normal vector from it
     vec4 waterNormalColor = texture(_NormalMap, distortionCords);
@@ -63,9 +64,9 @@ void main(){
     }
 
     //Alternative water color
-    float waterStep = step(texture(_NormalMap, fs_in.UV * 0.1 + _Time * 0.05).r * 0.1, 0.07);
+    float waterStep = step(texture(_NormalMap, fs_in.UV * _Tileing + _Time * 0.05 * _DistortionSpeed).r * 0.1, 0.07);
     vec3 waterCol = mix(vec3(1.0, 1.0, 1.0), vec3(0.0, 0.5, 1.0), waterStep);
-    waterStep = step(texture(_NormalMap, (fs_in.UV) * 0.1 + _Time * 0.05).r * 0.1, 0.05);
+    waterStep = step(texture(_NormalMap, (fs_in.UV) * _Tileing + _Time * 0.05).r * 0.1, 0.05);
     waterCol = mix(waterCol, vec3(0.0, 0.1, 0.5), waterStep);
 
     vec4 waterColor = vec4(0, 0.5, 0.9, 1.0);

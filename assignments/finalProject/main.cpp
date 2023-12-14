@@ -141,24 +141,35 @@ int main() {
     ew::Shader skyShader("assets/skyShader.vert", "assets/skyShader.frag");
 
     //Create cube
-    ew::Mesh waterMesh(ew::createPlane(5.0f, 5.0f, 50));
+    ew::Mesh waterMesh(ew::createPlane(10.0f, 10.0f, 100));
     ew::Mesh sphereMesh(ew::createSphere(0.5f, 64));
 
-    float tiling = 0.4;
-    float waveTiling = 0.01;
-    float waveHeight = 1;
-    float distortionSpeed = 1;
-    float waveSpeed = 1;
+    float realisticTiling = 8;
+    float realisticWaveTiling = 0.1;
+    float realisticWaveHeight = 2.5;
+    float realisticDistortionSpeed = 1;
+    float realisticWaveSpeed = 1;
+
+    float cartoonTiling = 4;
+    float cartoonWaveTiling = 0.1;
+    float cartoonWaveHeight = 2.4;
+    float cartoonDistortionSpeed = 1;
+    float cartoonWaveSpeed = 1;
+
+    float* tiling = &realisticTiling;
+    float* waveTiling = &realisticWaveTiling;
+    float* waveHeight = &realisticWaveHeight;
+    float* distortionSpeed = &realisticDistortionSpeed;
+    float* waveSpeed = &realisticWaveSpeed;
 
     //Create sky"box"
-    float rad = 50.0f;
+    float rad = 100.0f;
     int segments = 64;
-    float height = 50.0f;
+    float height = 100.0f;
     ew::Mesh skyTop(tsa::createDomeTop(rad, segments));
     ew::Mesh skyBot(tsa::createDomeBot(height, rad, segments));
 
     //Initialize transforms
-    ew::Transform cubeTransform;
     ew::Transform waterTransform;
     ew::Transform sphereTransform;
     ew::Transform fireTransform;
@@ -167,7 +178,7 @@ int main() {
     ew::Transform skyTransform;
     ew::Transform seaTransform;
     waterTransform.position = ew::Vec3(0, -3.0, 0);
-    waterTransform.scale = ew::Vec3(10, 1, 10);
+    waterTransform.scale = ew::Vec3(20, 1, 20);
     sphereTransform.position = ew::Vec3(-1.5f, 0.0f, 0.0f);
     fireTransform.position = ew::Vec3(1.5f, 0.0f, 0.0f);
     islandTransform.position = ew::Vec3(2.2, 0.4, 2.7);
@@ -257,11 +268,11 @@ int main() {
         glBindTexture(GL_TEXTURE_2D, waterNormalText);
         currWaterShader.setInt("_NormalMap", 1);
         currWaterShader.setFloat("_Time", glfwGetTime());
-        currWaterShader.setFloat("_Tileing", tiling);
-        currWaterShader.setFloat("_WaveTileing", waveTiling);
-        currWaterShader.setFloat("_WaveHeight", waveHeight);
-        currWaterShader.setFloat("_DistortionSpeed", distortionSpeed);
-        currWaterShader.setFloat("_WaveSpeed", waveSpeed);
+        currWaterShader.setFloat("_Tileing", *tiling);
+        currWaterShader.setFloat("_WaveTileing", *waveTiling);
+        currWaterShader.setFloat("_WaveHeight", *waveHeight);
+        currWaterShader.setFloat("_DistortionSpeed", *distortionSpeed);
+        currWaterShader.setFloat("_WaveSpeed", *waveSpeed);
         currWaterShader.setVec3("_CamPos", camera.position);
         currWaterShader.setMat4("_ViewProjection", camera.ProjectionMatrix() * camera.ViewMatrix());
         currWaterShader.setMat4("_Model", waterTransform.getModelMatrix());
@@ -333,11 +344,11 @@ int main() {
             }
 
             if (ImGui::CollapsingHeader("Water")) {
-                ImGui::DragFloat("Water Tiling", &tiling, 0.1);
-                ImGui::DragFloat("Wave Tiling", &waveTiling, 0.1);
-                ImGui::DragFloat("Wave Height", &waveHeight, 0.1);
-                ImGui::DragFloat("Distortion Speed", &distortionSpeed, 0.1);
-                ImGui::DragFloat("Wave Speed", &waveSpeed, 0.1);
+                ImGui::DragFloat("Water Tiling", tiling, 0.1);
+                ImGui::DragFloat("Wave Tiling", waveTiling, 0.1);
+                ImGui::DragFloat("Wave Height", waveHeight, 0.1);
+                ImGui::DragFloat("Distortion Speed", distortionSpeed, 0.1);
+                ImGui::DragFloat("Wave Speed",  waveSpeed, 0.1);
             }
 
             if (ImGui::Checkbox("Realistic Scene", &realIsland)){
@@ -348,16 +359,28 @@ int main() {
                     waterTransform.position = ew::Vec3(0, -3.0, 0);
                     islandTransform.position = ew::Vec3(2.2, 0.4, 2.7);
                     islandTransform.scale = ew::Vec3(1, 1, 1);
+
+                    tiling = &realisticTiling;
+                    waveTiling = &realisticWaveTiling;
+                    waveHeight = &realisticWaveHeight;
+                    distortionSpeed = &realisticDistortionSpeed;
+                    waveSpeed = &realisticWaveSpeed;
                 }
             }
             if (ImGui::Checkbox("'Cartoon' Scene", &cartoonIsland)){
                 if (cartoonIsland){
                     currModel = cartoonIslandModel;
                     currWaterShader = cartoonWaterShader;
-                    islandTransform.position = ew::Vec3(0.5, -1.2, 2.3);
+                    islandTransform.position = ew::Vec3(0.5, -1.4, 2.3);
                     islandTransform.scale = ew::Vec3(0.3, 0.3, 0.3);
-                    waterTransform.position = ew::Vec3(0, -1.0, 0);
+                    waterTransform.position = ew::Vec3(0, -1.1, 0);
                     realIsland = false;
+
+                    tiling = &cartoonTiling;
+                    waveTiling = &cartoonWaveTiling;
+                    waveHeight = &cartoonWaveHeight;
+                    distortionSpeed = &cartoonDistortionSpeed;
+                    waveSpeed = &cartoonWaveSpeed;
                 }
             }
 
@@ -388,7 +411,7 @@ void resetCamera(ew::Camera& camera, ew::CameraController& cameraController) {
     camera.fov = 60.0f;
     camera.orthoHeight = 6.0f;
     camera.nearPlane = 0.1f;
-    camera.farPlane = 100.0f;
+    camera.farPlane = 200.0f;
     camera.orthographic = false;
 
     cameraController.yaw = 0.0f;

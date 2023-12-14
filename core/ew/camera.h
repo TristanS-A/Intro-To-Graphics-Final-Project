@@ -9,7 +9,7 @@ namespace ew {
 
 		float fov = 60.0f;
 		float nearPlane = 0.01f;
-		float farPlane = 100.0f;
+		float farPlane = 200.0f;
 		bool orthographic = false;
 		float orthoHeight = 6.0f;
 		float aspectRatio = 1.77f;
