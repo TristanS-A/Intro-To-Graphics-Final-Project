@@ -52,10 +52,15 @@ void sceneRender(ew::Shader shader, unsigned int brickTexture, ew::Transform isl
     glClearColor(bgColor.x, bgColor.y,bgColor.z,1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    skyTransform.position = camera.position;
-    seaTransform.position = camera.position;
+    skyTransform.position.x = camera.position.x;
+    skyTransform.position.y = 0.0f;
+    skyTransform.position.z = camera.position.z;
+    seaTransform.position.x = camera.position.x;
+    seaTransform.position.y = 0.0f;
+    seaTransform.position.z = camera.position.z;
 
     skyShader.use();
+    skyShader.setFloat("_Time", glfwGetTime());
     skyShader.setMat4("_ViewProjection", camera.ProjectionMatrix() * camera.ViewMatrix());
     skyShader.setMat4("_Model", skyTransform.getModelMatrix());
     glActiveTexture(GL_TEXTURE0);
@@ -155,7 +160,7 @@ int main() {
     int segments = 64;
     float height = 50.0f;
     ew::Mesh skyTop(tsa::createDomeTop(rad, segments));
-    ew::Mesh skyBot(tsa::createDomeBot(height, rad, segments));
+    ew::Mesh skyBot(tsa::createDomeBot(height, rad + .05, segments));
 
     //Initialize transforms
     ew::Transform cubeTransform;
@@ -217,6 +222,7 @@ int main() {
         cameraController.Move(window, &camera, deltaTime);
 
         waterBuffers.bindReflectionFrameBuffer();
+        skyTransform.rotation.y = time / 10;
 
         //RENDER
 
