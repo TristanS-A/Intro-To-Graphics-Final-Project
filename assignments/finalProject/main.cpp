@@ -48,7 +48,7 @@ ew::Vec3 bgColor = ew::Vec3(0.0, 0.0, 0.0);
 ew::Camera camera;
 ew::CameraController cameraController;
 
-void sceneRender(ew::Shader shader, unsigned int brickTexture, ew::Transform islandTransform, tsa::AssimpModel model, ew::Transform waterTransform, Light lights[], ew::Transform lightTransforms[], Material islandMat, ew::Shader skyShader, ew::Transform skyTransform, ew::Transform seaTransform, ew::Mesh skyTop, ew::Mesh skyBot){
+void sceneRender(ew::Shader shader, unsigned int brickTexture, ew::Transform islandTransform, tsa::AssimpModel model, ew::Transform waterTransform, Light lights[], ew::Transform lightTransforms[], Material islandMat, ew::Shader skyShader, ew::Transform skyTransform, ew::Transform seaTransform, ew::Mesh skyTop, ew::Mesh skyBot, bool extraLight){
     glClearColor(bgColor.x, bgColor.y,bgColor.z,1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -75,6 +75,7 @@ void sceneRender(ew::Shader shader, unsigned int brickTexture, ew::Transform isl
     shader.setFloat("_Mat.diffuseK", islandMat.diffuseK);
     shader.setFloat("_Mat.shininess", islandMat.shininess);
     shader.setFloat("_Mat.specular", islandMat.specular);
+    shader.setFloat("_ExtraLight", extraLight);
 
     //Assign light data to lit shaders
     for (int i = 0; i < MAX_LIGHTS; i++){
@@ -130,7 +131,9 @@ int main() {
     glCullFace(GL_BACK);
     glEnable(GL_DEPTH_TEST);
 
-    ew::Shader shader("assets/defaultLit.vert", "assets/defaultLit.frag");
+    ew::Shader realisticLighting("assets/defaultLit.vert", "assets/defaultLit.frag");
+    ew::Shader cartoonLighting("assets/defaultLit.vert", "assets/cartoonLighting.frag");
+    ew::Shader currLightingShader = realisticLighting;
     unsigned int brickTexture = ew::loadTexture("assets/brick_color.jpg",GL_REPEAT,GL_LINEAR);
     unsigned int waterNormalText = ew::loadTexture("assets/waterNormalMap.png",GL_REPEAT,GL_LINEAR);
 
@@ -214,7 +217,9 @@ int main() {
         lightTransforms[i].scale = ew::Vec3(0.5, 0.5, 0.5);
     }
 
-    Material islandMat = {0.0, 1.0, 500, 1.0};
+    bool extraLight = false;
+
+    Material islandMat = {0.0, 1.0, 50, 1.0};
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
@@ -237,7 +242,7 @@ int main() {
         cameraController.pitch *= -1;
 
         glEnable(GL_CLIP_DISTANCE0);
-        sceneRender(shader, brickTexture, islandTransform, currModel, waterTransform, lights, lightTransforms, islandMat, skyShader, skyTransform, seaTransform, skyTop, skyBot);
+        sceneRender(currLightingShader, brickTexture, islandTransform, currModel, waterTransform, lights, lightTransforms, islandMat, skyShader, skyTransform, seaTransform, skyTop, skyBot, extraLight);
 
         //Assign data to light meshes
         fireShader.use();
@@ -258,7 +263,7 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glDisable(GL_CLIP_DISTANCE0);
-        sceneRender(shader, brickTexture, islandTransform, currModel, waterTransform, lights, lightTransforms, islandMat, skyShader, skyTransform, seaTransform, skyTop, skyBot);
+        sceneRender(currLightingShader, brickTexture, islandTransform, currModel, waterTransform, lights, lightTransforms, islandMat, skyShader, skyTransform, seaTransform, skyTop, skyBot, extraLight);
 
         currWaterShader.use();
         glActiveTexture(GL_TEXTURE0);
@@ -341,6 +346,7 @@ int main() {
                         ImGui::DragFloat("Light Power", &lights[i].power);
                     }
                 }
+                ImGui::Checkbox("Extra Detail (Only for Cartoon Lighting)", &extraLight);
             }
 
             if (ImGui::CollapsingHeader("Water")) {
@@ -365,6 +371,8 @@ int main() {
                     waveHeight = &realisticWaveHeight;
                     distortionSpeed = &realisticDistortionSpeed;
                     waveSpeed = &realisticWaveSpeed;
+
+                    currLightingShader = realisticLighting;
                 }
             }
             if (ImGui::Checkbox("'Cartoon' Scene", &cartoonIsland)){
@@ -381,6 +389,8 @@ int main() {
                     waveHeight = &cartoonWaveHeight;
                     distortionSpeed = &cartoonDistortionSpeed;
                     waveSpeed = &cartoonWaveSpeed;
+
+                    currLightingShader = cartoonLighting;
                 }
             }
 
