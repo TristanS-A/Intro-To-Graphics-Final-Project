@@ -145,7 +145,6 @@ int main() {
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glEnable(GL_DEPTH_TEST);
-
     ew::Shader realisticLighting("assets/defaultLit.vert", "assets/defaultLit.frag");
     ew::Shader cartoonLighting("assets/defaultLit.vert", "assets/cartoonLighting.frag");
     ew::Shader currLightingShader = realisticLighting;
@@ -155,10 +154,11 @@ int main() {
     unsigned int skyTextureRealistic = ew::loadTexture("assets/realisticSky.jpg", GL_REPEAT, GL_LINEAR);
     unsigned int currSky = skyTextureRealistic;
     unsigned int seaTextureCartoon = ew::loadTexture("assets/cartoonSea.jpg", GL_REPEAT, GL_LINEAR);
-    unsigned int seaTextureRealistic = ew::loadTexture("assets/brick_color.jpg", GL_REPEAT, GL_LINEAR);
+    unsigned int seaTextureRealistic = ew::loadTexture("assets/rSea.png", GL_REPEAT, GL_LINEAR);
     unsigned int currSea = seaTextureRealistic;
     unsigned int seaFloorCartoon = ew::loadTexture("assets/cartoonFloor.jpg", GL_REPEAT, GL_LINEAR);
-    unsigned int seaFloorRealistic = ew::loadTexture("assets/brick_color.jpg", GL_REPEAT, GL_LINEAR);
+    unsigned int seaFloorRealistic = ew::loadTexture("assets/rFloor.png", GL_REPEAT, GL_LINEAR);
+    unsigned int spook = ew::loadTexture("assets/sFloor.png", GL_REPEAT, GL_LINEAR);
     unsigned int currSeaFloor = seaFloorRealistic;
 
     ew::Shader realisticFireShader("assets/fireShader.vert", "assets/fireShader.frag");
@@ -268,7 +268,14 @@ int main() {
         if (realIsland) {
             currSky = skyTextureRealistic;
             currSea = seaTextureRealistic;
-            currSeaFloor = seaFloorRealistic;
+
+            //For fun spooky easter egg
+            if (realLighting) {
+                currSeaFloor = seaFloorRealistic;
+            }
+            else {
+                currSeaFloor = spook;
+            }
         }
         else {
             currSky = skyTextureCartoon;

@@ -45,7 +45,7 @@ void main(){
     float fresnelVal = dot(toCamVec, vec3(0, 1, 0));
 
     //Scales fresnel value
-    fresnelVal = pow(fresnelVal, 5);
+    fresnelVal = pow(fresnelVal, 4);
 
     //Gets normal map color and makes normal vector from it
     vec4 waterNormalColor = texture(_NormalMap, distortionCords);
