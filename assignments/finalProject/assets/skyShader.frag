@@ -2,6 +2,7 @@
 out vec4 FragColor;
 
 uniform sampler2D _Texture;
+uniform sampler2D _Texture2;
 
 in Surface{
     vec2 UV;
@@ -10,7 +11,10 @@ in Surface{
 }fs_in;
 
 void main(){
-
-
-	FragColor = texture(_Texture, fs_in.UV);
+    if (fs_in.WorldPos.y < -49.9f) {
+        FragColor = texture(_Texture2, fs_in.UV);
+    }
+    else {
+	    FragColor = texture(_Texture, vec2(1 - fs_in.UV.x, 1 - fs_in.UV.y));
+    }
 }

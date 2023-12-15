@@ -48,7 +48,7 @@ ew::Vec3 bgColor = ew::Vec3(0.0, 0.0, 0.0);
 ew::Camera camera;
 ew::CameraController cameraController;
 
-void sceneRender(ew::Shader shader, unsigned int brickTexture, ew::Transform islandTransform, tsa::AssimpModel model, ew::Transform waterTransform, Light lights[], ew::Transform lightTransforms[], Material islandMat, ew::Shader skyShader, ew::Transform skyTransform, ew::Transform seaTransform, ew::Mesh skyTop, ew::Mesh skyBot, bool extraLight, tsa::AssimpModel firepit, ew::Transform firepitTransform){
+void sceneRender(ew::Shader shader, unsigned int skyTexture, unsigned int seaTexture, unsigned int seaFloorTexture, ew::Transform islandTransform, tsa::AssimpModel model, ew::Transform waterTransform, Light lights[], ew::Transform lightTransforms[], Material islandMat, ew::Shader skyShader, ew::Transform skyTransform, ew::Transform seaTransform, ew::Mesh skyTop, ew::Mesh skyBot, bool extraLight, tsa::AssimpModel firepit, ew::Transform firepitTransform){
     glClearColor(bgColor.x, bgColor.y,bgColor.z,1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -64,13 +64,16 @@ void sceneRender(ew::Shader shader, unsigned int brickTexture, ew::Transform isl
     skyShader.setMat4("_ViewProjection", camera.ProjectionMatrix() * camera.ViewMatrix());
     skyShader.setMat4("_Model", skyTransform.getModelMatrix());
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, brickTexture);
+    glBindTexture(GL_TEXTURE_2D, skyTexture);
     skyShader.setInt("_Texture", 0); //placeholder, replace with actual texture later
     skyTop.draw();
     skyShader.setMat4("_Model", seaTransform.getModelMatrix());
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, brickTexture);
+    glBindTexture(GL_TEXTURE_2D, seaTexture);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, seaFloorTexture);
     skyShader.setInt("_Texture", 0); //placeholder, replace with actual texture later
+    skyShader.setInt("_Texture2", 1);
     skyBot.draw();
 
     shader.use();
@@ -146,8 +149,17 @@ int main() {
     ew::Shader realisticLighting("assets/defaultLit.vert", "assets/defaultLit.frag");
     ew::Shader cartoonLighting("assets/defaultLit.vert", "assets/cartoonLighting.frag");
     ew::Shader currLightingShader = realisticLighting;
-    unsigned int brickTexture = ew::loadTexture("assets/brick_color.jpg",GL_REPEAT,GL_LINEAR);
-    unsigned int waterNormalText = ew::loadTexture("assets/waterNormalMap.png",GL_REPEAT,GL_LINEAR);
+    unsigned int waterNormalText = ew::loadTexture("assets/waterNormalMap.png", GL_REPEAT, GL_LINEAR);
+
+    unsigned int skyTextureCartoon = ew::loadTexture("assets/cartoonSky.jpg", GL_REPEAT, GL_LINEAR);
+    unsigned int skyTextureRealistic = ew::loadTexture("assets/realisticSky.jpg", GL_REPEAT, GL_LINEAR);
+    unsigned int currSky = skyTextureRealistic;
+    unsigned int seaTextureCartoon = ew::loadTexture("assets/cartoonSea.jpg", GL_REPEAT, GL_LINEAR);
+    unsigned int seaTextureRealistic = ew::loadTexture("assets/brick_color.jpg", GL_REPEAT, GL_LINEAR);
+    unsigned int currSea = seaTextureRealistic;
+    unsigned int seaFloorCartoon = ew::loadTexture("assets/cartoonFloor.jpg", GL_REPEAT, GL_LINEAR);
+    unsigned int seaFloorRealistic = ew::loadTexture("assets/brick_color.jpg", GL_REPEAT, GL_LINEAR);
+    unsigned int currSeaFloor = seaFloorRealistic;
 
     ew::Shader realisticFireShader("assets/fireShader.vert", "assets/fireShader.frag");
     ew::Shader cartoonFireShader("assets/fireShader.vert", "assets/cartoonFire.frag");
@@ -184,7 +196,7 @@ int main() {
     int segments = 64;
     float height = 100.0f;
     ew::Mesh skyTop(tsa::createDomeTop(rad, segments));
-    ew::Mesh skyBot(tsa::createDomeBot(height, rad + .05, segments));
+    ew::Mesh skyBot(tsa::createDomeBot(height, rad + .25, segments));
 
     //Initialize transforms
     ew::Transform waterTransform;
@@ -253,6 +265,17 @@ int main() {
         waterBuffers.bindReflectionFrameBuffer();
         skyTransform.rotation.y = time / 10;
 
+        if (realIsland) {
+            currSky = skyTextureRealistic;
+            currSea = seaTextureRealistic;
+            currSeaFloor = seaFloorRealistic;
+        }
+        else {
+            currSky = skyTextureCartoon;
+            currSea = seaTextureCartoon;
+            currSeaFloor = seaFloorCartoon;
+        }
+
         //RENDER
 
         float reflectionCamOffset = 2 * (camera.position.y - waterTransform.position.y);
@@ -261,7 +284,7 @@ int main() {
         cameraController.pitch *= -1;
 
         glEnable(GL_CLIP_DISTANCE0);
-        sceneRender(currLightingShader, brickTexture, islandTransform, currModel, waterTransform, lights, lightTransforms, islandMat, skyShader, skyTransform, seaTransform, skyTop, skyBot, extraLight, currFirepit, firepitTransform);
+        sceneRender(currLightingShader, currSky, currSea, currSeaFloor, islandTransform, currModel, waterTransform, lights, lightTransforms, islandMat, skyShader, skyTransform, seaTransform, skyTop, skyBot, extraLight, currFirepit, firepitTransform);
 
         //Assign data to light meshes
         currFireShader.use();
@@ -282,7 +305,7 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glDisable(GL_CLIP_DISTANCE0);
-        sceneRender(currLightingShader, brickTexture, islandTransform, currModel, waterTransform, lights, lightTransforms, islandMat, skyShader, skyTransform, seaTransform, skyTop, skyBot, extraLight, currFirepit, firepitTransform);
+        sceneRender(currLightingShader, currSky, currSea, currSeaFloor, islandTransform, currModel, waterTransform, lights, lightTransforms, islandMat, skyShader, skyTransform, seaTransform, skyTop, skyBot, extraLight, currFirepit, firepitTransform);
 
         currWaterShader.use();
         glActiveTexture(GL_TEXTURE0);
