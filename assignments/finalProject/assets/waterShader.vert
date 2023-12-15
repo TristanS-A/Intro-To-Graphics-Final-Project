@@ -22,6 +22,8 @@ uniform float _WaveSpeed;
 uniform float _Time;
 
 void main(){
+
+    //Calculate distortion from normal texture
     vec2 distortionCords = texture(_NormalMap, vUV * _WaveTileing + _Time * 0.01 * _WaveSpeed).rg * 0.1;
     distortionCords = vUV * _WaveTileing + distortionCords;
     float height = (texture(_NormalMap, distortionCords).r * 2.0 - 1.0) * 0.02;

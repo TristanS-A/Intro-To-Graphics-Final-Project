@@ -246,13 +246,14 @@ int main() {
         lightTransforms[i].scale = ew::Vec3(0.5, 0.5, 0.5);
     }
 
+    //ImGui variables
     bool extraLight = false;
     bool enableSpecHighlights = true;
-
-    Material islandMat = {0.0, 1.0, 50, 1.0};
-
     float spinSpeed = .1;
     float spin = 0;
+
+    //Material vals for island
+    Material islandMat = { 0.0, 1.0, 50, 1.0 };
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
@@ -265,10 +266,11 @@ int main() {
         camera.aspectRatio = (float)SCREEN_WIDTH / SCREEN_HEIGHT;
         cameraController.Move(window, &camera, deltaTime);
 
-        waterBuffers.bindReflectionFrameBuffer();
+        //Skybox animation
         spin += deltaTime * spinSpeed;
         skyTransform.rotation.y = spin;
 
+        //Sets skybox textures
         if (realIsland) {
             currSky = skyTextureRealistic;
             currSea = seaTextureRealistic;
@@ -289,15 +291,21 @@ int main() {
 
         //RENDER
 
+        //Swapps buffer to water buffers to render reflecions
+        waterBuffers.bindReflectionFrameBuffer();
+
+        //Supposed to calculate distence the camera should be under the water for reflections
         float reflectionCamOffset = 2 * (camera.position.y - waterTransform.position.y);
 
+        //Should be the calculations to make reflections work (The reflections don't work though and we could not figure out why unfortunately)
         //camera.position.y -= reflectionCamOffset;
         cameraController.pitch *= -1;
 
+        //Renderes scene and gets it ready to clip for rendering reflexion (I know its horrendous how many perameters are in this function)
         glEnable(GL_CLIP_DISTANCE0);
         sceneRender(currLightingShader, currSky, currSea, currSeaFloor, islandTransform, currModel, waterTransform, lights, lightTransforms, islandMat, skyShader, skyTransform, seaTransform, skyTop, skyBot, extraLight, currFirepit, firepitTransform);
 
-        //Assign data to light meshes
+        //Assign data to light meshes and renders them
         currFireShader.use();
         currFireShader.setMat4("_ViewProjection", camera.ProjectionMatrix() * camera.ViewMatrix());
         currFireShader.setFloat("_Time", glfwGetTime());
@@ -307,17 +315,21 @@ int main() {
             sphereMesh.draw();
         }
 
+        //Resets camera for regular rendering to screen
         //camera.position.y += reflectionCamOffset;
         cameraController.pitch *= -1;
 
+        //Swapps buffer back to regular screen buffer
         waterBuffers.unbindWaterFrameBuffers(SCREEN_WIDTH, SCREEN_HEIGHT);
 
         glClearColor(bgColor.x, bgColor.y,bgColor.z,1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        //Renders scene and dissables clip planes to render scene normally
         glDisable(GL_CLIP_DISTANCE0);
         sceneRender(currLightingShader, currSky, currSea, currSeaFloor, islandTransform, currModel, waterTransform, lights, lightTransforms, islandMat, skyShader, skyTransform, seaTransform, skyTop, skyBot, extraLight, currFirepit, firepitTransform);
 
+        //Assigning values to water shader
         currWaterShader.use();
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, waterBuffers.getReflectionText());
@@ -346,6 +358,7 @@ int main() {
             currWaterShader.setFloat("_Lights[" + std::to_string(i) + "].power", lights[i].power);
         }
 
+        //Draws water shader
         waterMesh.draw();
 
 
@@ -386,11 +399,6 @@ int main() {
                     resetCamera(camera, cameraController);
                 }
             }
-
-            ImGui::DragFloat3("Island Scale", &islandTransform.scale.x, 0.1);
-            ImGui::DragFloat3("Island Position", &islandTransform.position.x, 0.1);
-            ImGui::DragFloat3("Firepit Position", &firepitTransform.position.x, 0.1);
-
             if (ImGui::CollapsingHeader("Lights")) {
                 for (int i = 0; i < MAX_LIGHTS; i++) {
                     if (ImGui::CollapsingHeader(("Light " + std::to_string(i + 1)).c_str())) {

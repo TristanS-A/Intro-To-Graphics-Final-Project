@@ -114,10 +114,10 @@ void main(){
     //Makes the fire fade out more (To stop the black outline from the dark/low colors)
     float fadeOutAddition = 0.2f;
 
-    //Changes opacity so that the black areas dissapear
+    //Changes opacity so that the black areas dissapear with a step
     float opacity = step(0.5, length((color)));
 
-    //Sets frag color to noise color and opacity
+    //Sets frag color to noise color and opacity with step
     //FragColor = vec4(vec3(newNoise), 1.0);
     FragColor = vec4(step(0.4, color), opacity);
 }

@@ -62,6 +62,7 @@ void main(){
 		//Specular calculations
 		tempLightColor += _Mat.specular * pow(max(dot(newNormals, normalize(halfVecPart / length(halfVecPart))), 0), _Mat.shininess) * newRange;
 
+		//Smoothsteps the rim lighting
 		tempLightColor += smoothstep(0.0, 1.0, rimLighting);
 
 		lightColor += newColor * tempLightColor;

@@ -27,6 +27,8 @@ in vec3 toCamVec;
 uniform Light _Lights[MAX_LIGHTS];
 
 void main(){
+
+    //Calculates displacement
     vec2 distortionCords = texture(_NormalMap, fs_in.UV * _Tileing + _Time * 0.05 * _DistortionSpeed).rg * 0.1;
     distortionCords = fs_in.UV * _Tileing + distortionCords;
     vec2 totalDistortion = (texture(_NormalMap, distortionCords).rg * 2.0 - 1.0) * 0.1;
