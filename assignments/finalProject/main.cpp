@@ -251,6 +251,9 @@ int main() {
 
     Material islandMat = {0.0, 1.0, 50, 1.0};
 
+    float spinSpeed = .1;
+    float spin = 0;
+
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
 
@@ -263,7 +266,8 @@ int main() {
         cameraController.Move(window, &camera, deltaTime);
 
         waterBuffers.bindReflectionFrameBuffer();
-        skyTransform.rotation.y = time / 10;
+        spin += deltaTime * spinSpeed;
+        skyTransform.rotation.y = spin;
 
         if (realIsland) {
             currSky = skyTextureRealistic;
@@ -458,7 +462,7 @@ int main() {
                     currLightingShader = cartoonLighting;
                 }
             }
-
+            ImGui::SliderFloat("Sky Speed", &spinSpeed, 0, 50);
             ImGui::ColorEdit3("BG color", &bgColor.x);
             ImGui::End();
 
